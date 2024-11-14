@@ -1,13 +1,9 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class Main {
     private static final String URL = "jdbc:mysql://localhost:3306/dbflights";
-    private static final String USER = "root"; // The username from MySQL Workbench
-    private static final String PASSWORD = "Iwillrulzsql28!"; // The password from MySQL Workbench
+    private static final String USER = "root";
+    private static final String PASSWORD = "Iwillrulzsql28!";
 
     public static void main(String[] args) {
         Connection connection = null;
@@ -32,7 +28,6 @@ public class Main {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            // Close resources
             try {
                 if (resultSet != null)
                     resultSet.close();
