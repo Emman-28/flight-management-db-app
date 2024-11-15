@@ -1,45 +1,39 @@
 import java.sql.*;
 
 public class Main {
-    // Update the URL with the correct database name at the end
-    private static final String URL = "jdbc:mysql://sql12.freesqldatabase.com:3306/sql12744795";
-    private static final String USER = "sql12744795";
-    private static final String PASSWORD = "VIL4kus9lZ";
-
     public static void main(String[] args) {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
 
         try {
-            // Load the MySQL JDBC driver (optional in some setups)
-            Class.forName("com.mysql.cj.jdbc.Driver");
-
-            // Establish a connection
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
+            // Establish a connection using the DatabaseConnection class
+            connection = DatabaseConnection.getConnection();
             System.out.println("Connected to the database!");
 
             // Create a statement to execute SQL queries
             statement = connection.createStatement();
 
-            // Insert a new record into the 'booking' table
-            String insertQuery = "INSERT INTO booking (booking_id, passenger_id, flight_id, airport_id, booking_date, booking_status) "
-                    + "VALUES (101, 1, 'FL123', 2, '2024-11-14 10:00:00', 'Paid')";
-            statement.executeUpdate(insertQuery);
-            System.out.println("Booking inserted successfully.");
-        } catch (SQLException | ClassNotFoundException e) {
+            // Select a specific row from the 'booking' table (e.g., booking_id = 101)
+            String selectQuery = "SELECT * FROM booking WHERE booking_id = 101";
+            resultSet = statement.executeQuery(selectQuery);
+
+            // Check if the result set contains data
+            if (resultSet.next()) {
+                // Print the row data
+                System.out.println("Booking Details:");
+                System.out.println("Booking ID: " + resultSet.getInt("booking_id"));
+                System.out.println("Passenger ID: " + resultSet.getInt("passenger_id"));
+                System.out.println("Flight ID: " + resultSet.getString("flight_id"));
+                System.out.println("Airport ID: " + resultSet.getInt("airport_id"));
+                System.out.println("Booking Date: " + resultSet.getTimestamp("booking_date"));
+                System.out.println("Booking Status: " + resultSet.getString("booking_status"));
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try {
-                if (resultSet != null)
-                    resultSet.close();
-                if (statement != null)
-                    statement.close();
-                if (connection != null)
-                    connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            // Close resources using the DatabaseConnection class
+            DatabaseConnection.closeConnection(connection, statement, null);
         }
     }
 }
