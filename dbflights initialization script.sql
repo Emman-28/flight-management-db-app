@@ -74,6 +74,8 @@ CREATE TABLE ticket (
 );
 
 -- Adding foreign key references at the end
+-- NOTE!! -> circular reference for booking and ticket
+-- eiterh remove booking_id from tickets or remove ticket_id from booking
 ALTER TABLE airport
     ADD FOREIGN KEY (company_id) REFERENCES company(company_id);
 
