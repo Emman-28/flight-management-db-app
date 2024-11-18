@@ -43,7 +43,7 @@ VALUES
     (1, 'F001', '2024-11-21 08:00:00', 'Departure'),
     (2, 'F002', '2024-11-21 09:30:00', 'Departure'),
     (3, 'F003', '2024-11-21 10:30:00', 'Delay'),
-    (4, 'F004', '2024-11-21 12:00:00', 'Cancelled'),
+    (4, 'F004', '2024-11-21 12:00:00', 'Maintenance'),
     (5, 'F005', '2024-11-21 13:30:00', 'Arrival');
 
 INSERT INTO passenger (passenger_id, passport_id, contact_number, email_address)
