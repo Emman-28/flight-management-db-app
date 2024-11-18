@@ -16,11 +16,11 @@ VALUES
 
 INSERT INTO booking (booking_id, passenger_id, ticket_id, flight_id, airport_id, booking_date, booking_status)
 VALUES
-    (101, 1, 1, 'F001', 1, '2024-11-15 08:00:00', 'Confirmed'),
+    (101, 1, 1, 'F001', 1, '2024-11-15 08:00:00', 'Paid'),
     (102, 2, 2, 'F002', 2, '2024-11-15 09:30:00', 'Pending'),
-    (103, 3, 3, 'F003', 3, '2024-11-15 10:30:00', 'Cancelled'),
-    (104, 4, 4, 'F004', 4, '2024-11-15 12:00:00', 'Confirmed'),
-    (105, 5, 5, 'F005', 5, '2024-11-15 13:30:00', 'Confirmed');
+    (103, 3, 3, 'F003', 3, '2024-11-15 10:30:00', 'Refunded'),
+    (104, 4, 4, 'F004', 4, '2024-11-15 12:00:00', 'Paid'),
+    (105, 5, 5, 'F005', 5, '2024-11-15 13:30:00', 'Paid');
 
 INSERT INTO company (company_id, name, date_founded)
 VALUES 
