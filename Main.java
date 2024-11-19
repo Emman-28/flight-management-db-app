@@ -1,7 +1,6 @@
-import operations.*;
-
 import java.sql.*;
 import java.util.Scanner;
+import operations.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,12 +10,17 @@ public class Main {
 
         Scanner input = new Scanner(System.in);
         int choice = 0;
+        String result;
 
         try {
             // establishing a connection #FIXME: can make it so that the user inputs the url, user, and password
             connection = DatabaseConnection.connect();
             System.out.println("Connected to the database successfully!");
             System.out.println("\nWelcome to the Flight Database Management System!\n");
+
+            ManageRecord record = new ManageRecord(connection);
+            ExecuteTransaction transaction = new ExecuteTransaction(connection);
+            GenerateReport report = new GenerateReport(connection);
 
             while(true) {
                 // displaying options
@@ -44,6 +48,8 @@ public class Main {
                                 // let user choose what to do
                                     // create record
                                     // read record
+                                    result = record.read("passenger");
+                                    System.out.println(result);
                                     // update record
                                     // delete record
 
