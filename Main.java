@@ -12,7 +12,7 @@ public class Main {
 
         try {
             // establishing a connection #FIXME: can make it so that the user inputs the url, user, and password
-            connection = DatabaseConnection.getConnection();
+            connection = DatabaseConnection.connect();
             System.out.println("Connected to the database successfully!");
             System.out.println("\nWelcome to the Flight Database Management System!\n");
 
@@ -75,7 +75,7 @@ public class Main {
                         break;
                     case 4:
                         // exiting program
-                        DatabaseConnection.closeConnection(connection, statement, null);
+                        DatabaseConnection.closeConnection();
                         System.out.println("\nClosed connection with database...");
                         System.out.println("\nExited the Flight Database Management System.");
                         return;
@@ -109,7 +109,7 @@ public class Main {
             System.err.println("An error occurred while interacting with the database: " + e.getMessage());
         } finally {
             // closing connection
-            DatabaseConnection.closeConnection(connection, statement, null);
+            DatabaseConnection.closeConnection();
             System.out.println("Closed connection with database...");
         }
     }
