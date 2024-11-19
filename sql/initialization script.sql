@@ -66,16 +66,12 @@ CREATE TABLE passport (
 );
 
 CREATE TABLE ticket (
-	ticket_id INT PRIMARY KEY,
     passenger_id INT,
     booking_id INT,
     seat_number VARCHAR(5),
     price DECIMAL(10,2)
 );
 
--- Adding foreign key references at the end
--- NOTE!! -> circular reference for booking and ticket
--- eiterh remove booking_id from tickets or remove ticket_id from booking
 ALTER TABLE airport
     ADD FOREIGN KEY (company_id) REFERENCES company(company_id);
 
@@ -84,7 +80,6 @@ ALTER TABLE passenger
 
 ALTER TABLE booking
     ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
-    ADD FOREIGN KEY (ticket_id) REFERENCES ticket(ticket_id),
     ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id),
     ADD FOREIGN KEY (airport_id) REFERENCES airport(airport_id);
 

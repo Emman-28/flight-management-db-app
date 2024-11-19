@@ -20,7 +20,7 @@ public class ExecuteTransaction {
     }
 
     // TODO:
-    public void reschedBooking() throws SQLException {
+    public void rescheduleBooking() throws SQLException {
 
     }
 

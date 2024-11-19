@@ -14,18 +14,18 @@ VALUES
     (4, 'Kumo Airport', 'Japan', 4),
     (5, 'On The Wings Airlines', 'UAE', 5);
 
-INSERT INTO booking (booking_id, passenger_id, ticket_id, flight_id, airport_id, booking_date, booking_status)
+INSERT INTO booking (booking_id, passenger_id, flight_id, airport_id, booking_date, booking_status)
 VALUES
-    (101, 1, 1, 'F001', 1, '2024-11-15 08:00:00', 'Paid'),
-    (102, 2, 2, 'F002', 2, '2024-11-15 09:30:00', 'Pending'),
-    (103, 3, 3, 'F003', 3, '2024-11-15 10:30:00', 'Refunded'),
-    (104, 4, 4, 'F004', 4, '2024-11-15 12:00:00', 'Paid'),
-    (105, 5, 5, 'F005', 5, '2024-11-15 13:30:00', 'Paid'),
-    (106, 3, 6, 'F003', 3, '2024-11-16 10:30:00', 'Paid'),
-    (107, 4, 7, 'F004', 4, '2024-11-16 12:00:00', 'Pending'),
-    (108, 5, 8, 'F005', 5, '2024-11-16 13:30:00', 'Refunded'),
-    (109, 1, 9, 'F001', 1, '2024-11-16 08:00:00', 'Paid'),
-    (110, 2, 10, 'F002', 2, '2024-11-16 09:30:00', 'Paid');
+    (101, 1, 'F001', 1, '2024-11-15 08:00:00', 'Paid'),
+    (102, 2, 'F002', 2, '2024-11-15 09:30:00', 'Pending'),
+    (103, 3, 'F003', 3, '2024-11-15 10:30:00', 'Refunded'),
+    (104, 4, 'F004', 4, '2024-11-15 12:00:00', 'Paid'),
+    (105, 5, 'F005', 5, '2024-11-15 13:30:00', 'Paid'),
+    (106, 3, 'F003', 3, '2024-11-16 10:30:00', 'Paid'),
+    (107, 4, 'F004', 4, '2024-11-16 12:00:00', 'Pending'),
+    (108, 5, 'F005', 5, '2024-11-16 13:30:00', 'Refunded'),
+    (109, 1, 'F001', 1, '2024-11-16 08:00:00', 'Paid'),
+    (110, 2, 'F002', 2, '2024-11-16 09:30:00', 'Paid');
 
 INSERT INTO company (company_id, name, date_founded)
 VALUES 
@@ -72,30 +72,10 @@ VALUES
     (654321987, 'Bob', 'Alexander', 'Builder', '1988-09-17 00:00:00', 'Male', 'Australian'),
     (321987654, 'Charlie', NULL, 'Brown', '1995-11-30 00:00:00', 'Other', 'Irish');
 
-INSERT INTO ticket (ticket_id, passenger_id, booking_id, seat_number, price)
+INSERT INTO ticket (passenger_id, booking_id, seat_number, price)
 VALUES
-    (1, 1, 101, 'A1', 150.00),
-    (2, 2, 102, 'A2', 200.00),
-    (3, 3, 103, 'B1', 180.00),
-    (4, 4, 104, 'B2', 220.00),
-    (5, 5, 105, 'C1', 250.00);
-
--- following queries are for deletion of data
-/*
-SELECT *
-FROM flight_log;
-
-SET FOREIGN_KEY_CHECKS = 0;
-
-DELETE FROM aircraft;
-DELETE FROM airport;
-DELETE FROM company;
-DELETE FROM passenger;
-DELETE FROM passport;
-DELETE FROM flight;
-DELETE FROM booking;
-DELETE FROM ticket;
-DELETE FROM flight_log;
-
-SET FOREIGN_KEY_CHECKS = 1;
-*/
+    (1, 101, 'A1', 150.00),
+    (2, 102, 'A2', 200.00),
+    (3, 103, 'B1', 180.00),
+    (4, 104, 'B2', 220.00),
+    (5, 105, 'C1', 250.00);

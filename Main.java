@@ -24,6 +24,7 @@ public class Main {
 
             while(true) {
                 // displaying options
+                System.out.println("You can command the following operations:");
                 System.out.println("[1] Manage Records");
                 System.out.println("[2] Execute Transactions");
                 System.out.println("[3] Generate Reports");
@@ -32,7 +33,7 @@ public class Main {
                 System.out.println("\nWhat would you like to do today?");
                 System.out.print("> ");
                 choice = input.nextInt(); // taking user input
-                System.out.println("");
+                System.out.print(" ");
 
                 switch (choice) {
                     case 1: // managing records
@@ -48,10 +49,12 @@ public class Main {
                                 // let user choose what to do
                                     // create record
                                     // read record
+                                    System.out.println("Reading Passenger Table...\n");
                                     result = record.read("passenger");
                                     System.out.println(result);
                                     // update record
                                     // delete record
+                                    record.delete("passenger", "passenger_id = 1");
 
                             // TODO: flight table
                             // let user choose what to do
@@ -88,37 +91,15 @@ public class Main {
                         System.out.println("\nExited the Flight Database Management System.");
                         return;
                     default:
-                        System.out.println("Invalid option, please input a valid option.");
+                        System.out.println("Invalid option, please input a valid option.\n");
                 }
             }
-
-            /* 
-            // Create a statement to execute SQL queries
-            statement = connection.createStatement();
-            // Select a specific row from the 'booking' table (e.g., booking_id = 101)
-            String selectQuery = "SELECT * FROM booking WHERE booking_id = 101";
-            resultSet = statement.executeQuery(selectQuery);
-            // Check if the result set contains data
-            if (resultSet.next()) {
-            // Print the row data
-            System.out.println("Booking Details:");
-            System.out.println("Booking ID: " + resultSet.getInt("booking_id"));
-            System.out.println("Passenger ID: " + resultSet.getInt("passenger_id"));
-            System.out.println("Flight ID: " + resultSet.getString("flight_id"));
-            System.out.println("Airport ID: " + resultSet.getInt("airport_id"));
-            System.out.println("Booking Date: " +
-            resultSet.getTimestamp("booking_date"));
-            System.out.println("Booking Status: " +
-            resultSet.getString("booking_status"));
-            }
-            */
-
         } catch (SQLException e) {
             System.err.println("An error occurred while interacting with the database: " + e.getMessage());
         } finally {
             // closing connection
             DatabaseConnection.closeConnection();
-            System.out.println("Closed connection with database...");
+            System.out.print("\nClosed connection with database...");
         }
     }
 }
