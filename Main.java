@@ -33,7 +33,6 @@ public class Main {
                 System.out.println("\nWhat would you like to do today?");
                 System.out.print("> ");
                 choice = input.nextInt(); // taking user input
-                System.out.print(" ");
 
                 switch (choice) {
                     case 1: // managing records
@@ -48,13 +47,28 @@ public class Main {
                             // TODO: passenger and passport tables
                                 // let user choose what to do
                                     // create record
+                                    System.out.println("\nCreating...");
+                                    String[] columns1 = {"passenger_id", "passport_id", "contact_number", "email_address"};
+                                    Object[] values1 = {1991, 123456789, 987654322, "fake.john.doe@gmail.com"};
+                                    record.create("passenger", columns1, values1);
+
                                     // read record
-                                    System.out.println("Reading Passenger Table...\n");
+                                    System.out.println("\nReading...");
                                     result = record.read("passenger");
-                                    System.out.println(result);
+                                    System.out.print(result);
+
                                     // update record
+                                    System.out.println("\nUpdating...");
+                                    String table = "passenger";
+                                    String condition = "passenger_id = 1";
+                                    String[] columns = {"contact_number", "email_address"};
+                                    Object[] values = {9876543210L, "newemail@example.com"};
+                                    record.update(table, condition, columns, values);
+
                                     // delete record
-                                    record.delete("passenger", "passenger_id = 1");
+                                    System.out.println("\nDeleting...");
+                                    record.delete("passenger", "passenger_id = 13");
+                                    System.out.println("");
 
                             // TODO: flight table
                             // let user choose what to do
@@ -94,7 +108,7 @@ public class Main {
                         System.out.println("Invalid option, please input a valid option.\n");
                 }
             }
-        } catch (SQLException e) {
+        } catch(SQLException e) {
             System.err.println("An error occurred while interacting with the database: " + e.getMessage());
         } finally {
             // closing connection

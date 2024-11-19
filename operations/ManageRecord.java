@@ -10,8 +10,42 @@ public class ManageRecord {
     }
 
     // TODO:
+    // creates a record in specified columns of a given table
     public void create(String table, String[] columns, Object[] values) throws SQLException {
-
+        StringBuilder sql = new StringBuilder("INSERT INTO " + table + " (");
+        
+        // appending columns to query
+        for(int i = 0; i < columns.length; i++) {
+            sql.append(columns[i]);
+            if (i < columns.length - 1) {
+                sql.append(", "); // adding commas between column names
+            }
+        }
+        
+        // Add placeholders for the values
+        sql.append(") VALUES (");
+        for(int i = 0; i < columns.length; i++) {
+            sql.append("?");
+            if (i < columns.length - 1) {
+                sql.append(", "); // Add commas between placeholders
+            }
+        }
+        sql.append(")");
+    
+        // Execute the query using a PreparedStatement
+        try(PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            // binding values to placeholders
+            for (int i = 0; i < values.length; i++) {
+                preparedStatement.setObject(i + 1, values[i]);
+            }
+            
+            // executing insert query
+            int rowsAffected = preparedStatement.executeUpdate();
+            System.out.println(rowsAffected + " row(s) inserted.");
+        } catch (SQLException e) {
+            System.out.println("Error occurred while inserting record: " + e.getMessage());
+            throw e;
+        }
     }
 
     // returns all records from a given table FIXME: returns a string, not suitable for GUI
@@ -65,8 +99,34 @@ public class ManageRecord {
     }
 
     // TODO:
-    public void update(String tableName, String condition, String[] columns, Object[] values) throws SQLException {
-
+    // updates specified column/s of a given table given a condition
+    public void update(String table, String condition, String[] columns, Object[] values) throws SQLException {
+        StringBuilder sql = new StringBuilder("UPDATE " + table + " SET ");
+        
+        // appending columns and values
+        for (int i = 0; i < columns.length; i++) {
+            sql.append(columns[i] + " = ?");
+            if (i < columns.length - 1) {
+                sql.append(", "); // adding commas between the column-value pairs
+            }
+        }
+        
+        sql.append(" WHERE " + condition); // appending WHERE condition
+    
+        // executing prepared statement
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
+            // inserting values to statement
+            for (int i = 0; i < values.length; i++) {
+                preparedStatement.setObject(i + 1, values[i]);
+            }
+    
+            // executing the update query
+            int rowsAffected = preparedStatement.executeUpdate();
+            System.out.println(rowsAffected + " row(s) updated.");
+        } catch (SQLException e) {
+            System.out.println("Error occurred while updating record: " + e.getMessage());
+            throw e;
+        }
     }
 
     // deletes records from a given table and condition

@@ -15,7 +15,6 @@ CREATE TABLE airport (
 CREATE TABLE booking (
     booking_id INT PRIMARY KEY,
     passenger_id INT,
-    ticket_id INT,
     flight_id VARCHAR(5),
     airport_id INT,
     booking_date DATETIME,
@@ -72,31 +71,26 @@ CREATE TABLE ticket (
     price DECIMAL(10,2)
 );
 
+-- foreign keys
 ALTER TABLE airport
-    ADD FOREIGN KEY (company_id) REFERENCES company(company_id);
+    ADD FOREIGN KEY (company_id) REFERENCES company(company_id) ON DELETE CASCADE;
 
 ALTER TABLE passenger
-    ADD FOREIGN KEY (passport_id) REFERENCES passport(passport_id);
+    ADD FOREIGN KEY (passport_id) REFERENCES passport(passport_id) ON DELETE CASCADE;
 
 ALTER TABLE booking
-    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
-    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id),
-    ADD FOREIGN KEY (airport_id) REFERENCES airport(airport_id);
+    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE;
 
 ALTER TABLE flight
-    ADD FOREIGN KEY (aircraft_id) REFERENCES aircraft(aircraft_id),
-    ADD FOREIGN KEY (origin_airport_id) REFERENCES airport(airport_id),
-    ADD FOREIGN KEY (dest_airport_id) REFERENCES airport(airport_id);
+    ADD FOREIGN KEY (aircraft_id) REFERENCES aircraft(aircraft_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (origin_airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (dest_airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE;
 
 ALTER TABLE ticket
-    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id),
-    ADD FOREIGN KEY (booking_id) REFERENCES booking(booking_id);
+    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (booking_id) REFERENCES booking(booking_id) ON DELETE CASCADE;
 
 ALTER TABLE flight_log
-    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id);
-    
--- disabling foreign key checks to be able to enter data without references to other tables
-SET FOREIGN_KEY_CHECKS = 0;
-
--- enabling foreign key checks in order to ensure integrity
-SET FOREIGN_KEY_CHECKS = 1;
+    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id) ON DELETE CASCADE;
