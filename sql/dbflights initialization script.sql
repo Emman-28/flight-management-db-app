@@ -45,7 +45,7 @@ CREATE TABLE flight_log (
     log_id INT PRIMARY KEY,
     flight_id VARCHAR(5),
     log_date DATETIME,
-    event_type ENUM('Departure', 'Arrival', 'Delay', 'Reschedule', 'Maintenance', 'Weather')
+    event_type ENUM('Departure', 'Arrival', 'Delay', 'Reschedule', 'Maintenance', 'Weather', 'Cancellation')
 );
 
 CREATE TABLE passenger (

@@ -79,3 +79,23 @@ VALUES
     (3, 3, 103, 'B1', 180.00),
     (4, 4, 104, 'B2', 220.00),
     (5, 5, 105, 'C1', 250.00);
+
+-- following queries are for deletion of data
+/*
+SELECT *
+FROM flight_log;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DELETE FROM aircraft;
+DELETE FROM airport;
+DELETE FROM company;
+DELETE FROM passenger;
+DELETE FROM passport;
+DELETE FROM flight;
+DELETE FROM booking;
+DELETE FROM ticket;
+DELETE FROM flight_log;
+
+SET FOREIGN_KEY_CHECKS = 1;
+*/
