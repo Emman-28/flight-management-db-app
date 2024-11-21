@@ -1,3 +1,5 @@
+package GUI;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -41,12 +43,6 @@ public class MainFrame {
         generateReportsButton.setPreferredSize(buttonSize);
         exitSystemButton.setPreferredSize(buttonSize);
 
-        // Center-align buttons
-        manageRecordsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        executeTransactionsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        generateReportsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        exitSystemButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         // Add buttons with uniform size and spacing
         buttonPanel.add(manageRecordsButton);
         buttonPanel.add(executeTransactionsButton);
@@ -54,9 +50,21 @@ public class MainFrame {
         buttonPanel.add(exitSystemButton);
 
         // Add action listeners for the buttons
-        manageRecordsButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Manage Records clicked."));
-        executeTransactionsButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Execute Transactions clicked."));
-        generateReportsButton.addActionListener(e -> JOptionPane.showMessageDialog(frame, "Generate Reports clicked."));
+        manageRecordsButton.addActionListener(e -> {
+            frame.dispose();
+            new ManageRecordsFrame(); // Open Manage Records window
+        });
+
+        executeTransactionsButton.addActionListener(e -> {
+            frame.dispose();
+            new ExecuteTransactionsFrame(); // Open Execute Transactions window
+        });
+
+        generateReportsButton.addActionListener(e -> {
+            frame.dispose();
+            new GenerateReportsFrame(); // Open Generate Reports window
+        });
+
         exitSystemButton.addActionListener(e -> System.exit(0)); // Exit application
 
         // Add the button panel to the main panel
