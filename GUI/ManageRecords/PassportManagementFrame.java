@@ -3,6 +3,7 @@ package GUI.ManageRecords;
 import GUI.*;
 import java.awt.*;
 import java.sql.*;
+import java.time.LocalDate;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -58,7 +59,7 @@ public class PassportManagementFrame extends JFrame {
 
         JButton readButton = new JButton("Read Passport Record");
         readButton.setPreferredSize(buttonSize);
-        // readButton.addActionListener(e -> showReadRecordDialog());
+        readButton.addActionListener(e -> showReadRecordDialog());
 
         JButton deleteButton = new JButton("Delete Passport Record");
         deleteButton.setPreferredSize(buttonSize);
@@ -68,7 +69,7 @@ public class PassportManagementFrame extends JFrame {
         backButton.setPreferredSize(buttonSize);
         backButton.addActionListener(e -> {
             dispose();
-            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Pass all three parameters back
+            new ManageRecordsFrame(connection, manageRecord, transaction, report);
         });
 
         buttonPanel.add(createButton);
@@ -84,7 +85,7 @@ public class PassportManagementFrame extends JFrame {
 
     private void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Passport Record", true);
-        dialog.setSize(500, 350);
+        dialog.setSize(750, 600);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
@@ -92,67 +93,113 @@ public class PassportManagementFrame extends JFrame {
         inputPanel.setLayout(new GridLayout(10, 2, 10, 10));
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel idLabel = new JLabel("Passport ID (11 chars):"); // #FIXME: should be int
+        // name fields
+        JLabel idLabel = new JLabel("Passport ID:"); 
         JTextField idField = new JTextField();
-        JLabel FirstNameLabel = new JLabel("First Name (25 chars):");
-        JTextField FirstNameField = new JTextField();
+        JLabel firstNameLabel = new JLabel("First Name (25 chars):");
+        JTextField firstNameField = new JTextField();
         JLabel middleNameLabel = new JLabel("Middle Name (25 chars):");
         JTextField middleNameField = new JTextField();
-        JLabel LastNameLabel = new JLabel("Last Name (25 chars):");
-        JTextField LastNameField = new JTextField();
+        JLabel lastNameLabel = new JLabel("Last Name (25 chars):");
+        JTextField lastNameField = new JTextField();
 
-        JLabel birthdateLabel = new JLabel("Date (YYYY-MM-DD):");
-        SpinnerDateModel birthdateModel = new SpinnerDateModel();
-        JSpinner dateSpinner = new JSpinner(birthdateModel);
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
-        dateSpinner.setEditor(dateEditor);
+        // for the date fields
+        String[] days = new String[31];
+        String[] months = new String[12];
+        String[] years = new String[100];
+        fillDates(days, months, years);
+        JComboBox<String> dayComboBoxBirth = new JComboBox<>(days);
+        JComboBox<String> monthComboBoxBirth = new JComboBox<>(months);
+        JComboBox<String> yearComboBoxBirth = new JComboBox<>(years);
 
+        // birthdate fields
+        dayComboBoxBirth.setPreferredSize(new Dimension(80, 30));
+        monthComboBoxBirth.setPreferredSize(new Dimension(120, 30));
+        yearComboBoxBirth.setPreferredSize(new Dimension(100, 30));
+        JPanel birthDatePanel = new JPanel();
+        birthDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        birthDatePanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        birthDatePanel.add(monthComboBoxBirth);
+        birthDatePanel.add(dayComboBoxBirth);
+        birthDatePanel.add(yearComboBoxBirth);
+        JLabel birthdateLabel = new JLabel("Date:");
+
+        // gender / sex
         DefaultComboBoxModel<String> genderModel = new DefaultComboBoxModel<>();
         genderModel.addElement("Male");
         genderModel.addElement("Female");
         genderModel.addElement("Others");
         JLabel genderLabel = new JLabel("Gender:");
-        JComboBox<String> customComboBox = new JComboBox<>(genderModel);
+        JComboBox<String> genderComboBox = new JComboBox<>(genderModel);
 
-        JLabel nationalityLabel = new JLabel("Nationality (25 chars):");
-        JTextField nationalityField = new JTextField();
+        // nationalities
+        String[] nationalities = fillNationalities();
+        JLabel nationalityLabel = new JLabel("Nationality:");
+        JComboBox<String> nationalityComboBox = new JComboBox<>(nationalities);
 
+        // place of issue
         JLabel placeOfIssueLabel = new JLabel("Place of Issue (25 chars):");
         JTextField placeOfIssueField = new JTextField();
+        
+        // issue date
+        JComboBox<String> dayComboBoxIssue = new JComboBox<>(days);
+        JComboBox<String> monthComboBoxIssue = new JComboBox<>(months);
+        JComboBox<String> yearComboBoxIssue = new JComboBox<>(years);
 
-        JLabel issueDateLabel = new JLabel("Issue Date (YYYY-MM-DD):");
-        SpinnerDateModel issueDateModel = new SpinnerDateModel();
-        JSpinner issueDateSpinner = new JSpinner(issueDateModel);
-        JSpinner.DateEditor issueDateEditor = new JSpinner.DateEditor(issueDateSpinner, "yyyy-MM-dd");
-        issueDateSpinner.setEditor(issueDateEditor);
+        JPanel issueDatePanel = new JPanel();
+        issueDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        issueDatePanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-        JLabel expirationDateLabel = new JLabel("Expiration Date (YYYY-MM-DD):");
-        SpinnerDateModel expirationDateModel = new SpinnerDateModel();
-        JSpinner expirationDateSpinner = new JSpinner(expirationDateModel);
-        JSpinner.DateEditor expirationDateEditor = new JSpinner.DateEditor(expirationDateSpinner, "yyyy-MM-dd");
-        expirationDateSpinner.setEditor(expirationDateEditor);
+        issueDatePanel.add(monthComboBoxIssue);  
+        issueDatePanel.add(dayComboBoxIssue);    
+        issueDatePanel.add(yearComboBoxIssue); 
+
+        dayComboBoxIssue.setPreferredSize(new Dimension(80, 30));
+        monthComboBoxIssue.setPreferredSize(new Dimension(120, 30));
+        yearComboBoxIssue.setPreferredSize(new Dimension(100, 30));
+
+        JLabel issueDateLabel = new JLabel("Issue Date:");
+
+        // expiration date
+        JComboBox<String> dayComboBoxExp = new JComboBox<>(days);
+        JComboBox<String> monthComboBoxExp = new JComboBox<>(months);
+        JComboBox<String> yearComboBoxExp = new JComboBox<>(years);
+
+        dayComboBoxExp.setPreferredSize(new Dimension(80, 30));
+        monthComboBoxExp.setPreferredSize(new Dimension(120, 30));
+        yearComboBoxExp.setPreferredSize(new Dimension(100, 30));
+
+        JPanel expDatePanel = new JPanel();
+        expDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        expDatePanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+
+        expDatePanel.add(monthComboBoxExp);
+        expDatePanel.add(dayComboBoxExp);
+        expDatePanel.add(yearComboBoxExp);
+
+        JLabel expirationDateLabel = new JLabel("Expiration Date:");
 
         // Add components to the input panel
         inputPanel.add(idLabel);
         inputPanel.add(idField);
-        inputPanel.add(FirstNameLabel);
-        inputPanel.add(FirstNameField);
+        inputPanel.add(firstNameLabel);
+        inputPanel.add(firstNameField);
         inputPanel.add(middleNameLabel);
         inputPanel.add(middleNameField);
-        inputPanel.add(LastNameLabel);
-        inputPanel.add(LastNameField);
+        inputPanel.add(lastNameLabel);
+        inputPanel.add(lastNameField);
         inputPanel.add(birthdateLabel);
-        inputPanel.add(dateSpinner);
+        inputPanel.add(birthDatePanel);
         inputPanel.add(genderLabel);
-        inputPanel.add(customComboBox);
+        inputPanel.add(genderComboBox);
         inputPanel.add(nationalityLabel);
-        inputPanel.add(nationalityField);
+        inputPanel.add(nationalityComboBox);
         inputPanel.add(placeOfIssueLabel);
         inputPanel.add(placeOfIssueField);
         inputPanel.add(issueDateLabel);
-        inputPanel.add(issueDateSpinner);
+        inputPanel.add(issueDatePanel);
         inputPanel.add(expirationDateLabel);
-        inputPanel.add(expirationDateSpinner);
+        inputPanel.add(expDatePanel);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton createButton = new JButton("Create");
@@ -165,56 +212,81 @@ public class PassportManagementFrame extends JFrame {
             private void checkFields() {
                 createButton.setEnabled(
                     !idField.getText().trim().isEmpty() &&
-                    !FirstNameField.getText().trim().isEmpty() &&
-                    !LastNameField.getText().trim().isEmpty() &&
-                    !nationalityField.getText().trim().isEmpty() &&
+                    !firstNameField.getText().trim().isEmpty() &&
+                    !lastNameField.getText().trim().isEmpty() &&
+                    nationalityComboBox.getSelectedItem()!= null &&
                     !placeOfIssueField.getText().trim().isEmpty() &&
-                    dateSpinner.getValue() != null &&
-                    issueDateSpinner.getValue() != null &&
-                    expirationDateSpinner.getValue() != null &&
-                    customComboBox.getSelectedItem() != null
+                    dayComboBoxBirth.getSelectedItem() != null &&
+                    monthComboBoxBirth.getSelectedItem()!= null &&
+                    yearComboBoxBirth.getSelectedItem()!= null &&
+                    dayComboBoxIssue.getSelectedItem()!= null &&
+                    monthComboBoxIssue.getSelectedItem()!= null &&
+                    yearComboBoxIssue.getSelectedItem()!= null &&
+                    dayComboBoxExp.getSelectedItem()!= null &&
+                    monthComboBoxExp.getSelectedItem()!= null &&
+                    yearComboBoxExp.getSelectedItem()!= null
                 );
             }
-        
+
+            @Override
             public void insertUpdate(DocumentEvent e) {
-                checkFields(); // Call the checkFields() method
+                checkFields();
             }
-        
+
+            @Override
             public void removeUpdate(DocumentEvent e) {
-                checkFields(); // Call the checkFields() method
+                checkFields();
             }
-        
+
+            @Override
             public void changedUpdate(DocumentEvent e) {
-                checkFields(); // Call the checkFields() method
+                checkFields();
             }
         };
 
-        // Add the fieldListener to all relevant fields
         idField.getDocument().addDocumentListener(fieldListener);
-        FirstNameField.getDocument().addDocumentListener(fieldListener);
-        LastNameField.getDocument().addDocumentListener(fieldListener);
-        nationalityField.getDocument().addDocumentListener(fieldListener);
+        firstNameField.getDocument().addDocumentListener(fieldListener);
+        lastNameField.getDocument().addDocumentListener(fieldListener);
         placeOfIssueField.getDocument().addDocumentListener(fieldListener);
 
         createButton.addActionListener(e -> {
             String passport_id = idField.getText().trim();
-            String firstName = FirstNameField.getText().trim();
+            String firstName = firstNameField.getText().trim();
             String middleName = middleNameField.getText().trim().isEmpty() ? null : middleNameField.getText().trim();
-            String lastName = LastNameField.getText().trim();
-            String nationality = nationalityField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+            String nationality = nationalityComboBox.getSelectedItem().toString();
             String placeOfIssue = placeOfIssueField.getText().trim();
-            Object dateOfBirth = dateSpinner.getValue();
-            Object issueDate = issueDateSpinner.getValue();
-            Object expirationDate = expirationDateSpinner.getValue();
-            String gender = (String) customComboBox.getSelectedItem();
+            Object dateOfBirth = yearComboBoxBirth.getSelectedItem() + "-" + monthComboBoxBirth.getSelectedItem() + "-" + dayComboBoxBirth.getSelectedItem();
+            Object issueDate = yearComboBoxIssue.getSelectedItem() + "-" + monthComboBoxIssue.getSelectedItem() + "-" + dayComboBoxIssue.getSelectedItem();
+            Object expirationDate = yearComboBoxExp.getSelectedItem() + "-" + monthComboBoxExp.getSelectedItem() + "-" + dayComboBoxExp.getSelectedItem();
+            String gender = (String) genderComboBox.getSelectedItem();
         
             try {
-                if (passport_id.length() > 11 || firstName.length() > 25 || middleName != null && middleName.length() > 25 || lastName.length() > 25 || nationality.length() > 25 || placeOfIssue.length() > 25) {
+                if(passport_id.length() > 11 || firstName.length() > 25 || middleName != null && middleName.length() > 25 || lastName.length() > 25 || nationality.length() > 25 || placeOfIssue.length() > 25) {
                     throw new IllegalArgumentException("Input length exceeds allowed character limits.");
                 }
         
-                if (dateOfBirth == null || issueDate == null || expirationDate == null || gender == null) {
+                if(dateOfBirth == null || issueDate == null || expirationDate == null || gender == null || passport_id == null || firstName == null || lastName == null || nationality == null || placeOfIssue == null) {
                     throw new IllegalArgumentException("All fields must be filled.");
+                }
+
+                if(nationality == "Select Nationality") {
+                    throw new IllegalArgumentException("Select a Nationality.");
+                }
+
+                String issueDateString = yearComboBoxIssue.getSelectedItem().toString() + "-"
+                + monthComboBoxIssue.getSelectedItem().toString() + "-"
+                + dayComboBoxIssue.getSelectedItem().toString();
+
+                String expirationDateString = yearComboBoxExp.getSelectedItem().toString() + "-"
+                        + monthComboBoxExp.getSelectedItem().toString() + "-"
+                        + dayComboBoxExp.getSelectedItem().toString();
+
+                LocalDate issueDateParsed = LocalDate.parse(issueDateString);
+                LocalDate expirationDateParsed = LocalDate.parse(expirationDateString);
+
+                if (!issueDateParsed.isBefore(expirationDateParsed)) {
+                    throw new IllegalArgumentException("Issue date must be earlier than expiration date.");
                 }
         
                 manageRecord.create("passports", 
@@ -242,5 +314,150 @@ public class PassportManagementFrame extends JFrame {
         dialog.add(inputPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
+    }
+
+    private void fillDates(String[] days, String[] months, String[] years) {
+        for(int i = 0; i < 31; i++) {
+            days[i] = String.format("%02d", i + 1);
+        }
+        for(int i = 0; i < 12; i++) {
+            months[i] = String.format("%02d", i + 1); 
+        }
+        for(int i = 0; i < 100; i++) {
+            years[i] = String.valueOf(2024 - i);
+        }
+    }
+
+    private String[] fillNationalities() {
+        String[] nationalities = {
+            "Select Nationality",
+            "Afghan",
+            "Albanian",
+            "Algerian",
+            "American",
+            "Argentinian",
+            "Armenian",
+            "Australian",
+            "Austrian",
+            "Bangladeshi",
+            "Belgian",
+            "Bolivian",
+            "Brazilian",
+            "British",
+            "Bulgarian",
+            "Cambodian",
+            "Cameroonian",
+            "Canadian",
+            "Chilean",
+            "Chinese",
+            "Colombian",
+            "Costa Rican",
+            "Croatian",
+            "Cuban",
+            "Czech",
+            "Danish",
+            "Dominican",
+            "Dutch",
+            "Ecuadorian",
+            "Egyptian",
+            "Emirati",
+            "English",
+            "Estonian",
+            "Ethiopian",
+            "Filipino",
+            "Finnish",
+            "French",
+            "Georgian",
+            "German",
+            "Ghanaian",
+            "Greek",
+            "Guatemalan",
+            "Haitian",
+            "Honduran",
+            "Hungarian",
+            "Icelandic",
+            "Indian",
+            "Indonesian",
+            "Iranian",
+            "Iraqi",
+            "Irish",
+            "Israeli",
+            "Italian",
+            "Ivorian",
+            "Jamaican",
+            "Japanese",
+            "Jordanian",
+            "Kazakh",
+            "Kenyan",
+            "Korean",
+            "Kuwaiti",
+            "Latvian",
+            "Lebanese",
+            "Liberian",
+            "Libyan",
+            "Lithuanian",
+            "Malaysian",
+            "Malian",
+            "Mexican",
+            "Moroccan",
+            "Mozambican",
+            "Namibian",
+            "Nepalese",
+            "New Zealander",
+            "Nicaraguan",
+            "Nigerian",
+            "Norwegian",
+            "Pakistani",
+            "Palestinian",
+            "Panamanian",
+            "Paraguayan",
+            "Peruvian",
+            "Polish",
+            "Portuguese",
+            "Qatari",
+            "Romanian",
+            "Russian",
+            "Saudi",
+            "Scottish",
+            "Senegalese",
+            "Serbian",
+            "Singaporean",
+            "Slovak",
+            "Slovenian",
+            "Somali",
+            "South African",
+            "Spanish",
+            "Sri Lankan",
+            "Sudanese",
+            "Swedish",
+            "Swiss",
+            "Syrian",
+            "Taiwanese",
+            "Tajik",
+            "Tanzanian",
+            "Thai",
+            "Tunisian",
+            "Turkish",
+            "Ugandan",
+            "Ukrainian",
+            "Uruguayan",
+            "Uzbek",
+            "Venezuelan",
+            "Vietnamese",
+            "Welsh",
+            "Zambian",
+            "Zimbabwean",
+            "Other"
+        };
+
+        return nationalities;
+    }
+
+    private void showReadRecordDialog() {
+        JDialog dialog = new JDialog(this, "Read Passport Records", true);
+        dialog.setSize(500, 350);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
     }
 }
