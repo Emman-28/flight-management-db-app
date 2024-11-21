@@ -44,12 +44,12 @@ public class ManageRecordsFrame extends JFrame {
         Dimension buttonSize = new Dimension(250, 40);
         JButton airportButton = new JButton("Airport Record Management");
         JButton flightButton = new JButton("Flight Record Management");
-        JButton passengerButton = new JButton("Passenger Record Management");
+        JButton passportButton = new JButton("Passport Record Management");
 
         // Set uniform size for all buttons
         airportButton.setPreferredSize(buttonSize);
         flightButton.setPreferredSize(buttonSize);
-        passengerButton.setPreferredSize(buttonSize);
+        passportButton.setPreferredSize(buttonSize);
 
         // Add action listeners to each button
         airportButton.addActionListener(e -> {
@@ -60,15 +60,15 @@ public class ManageRecordsFrame extends JFrame {
             dispose();
             new FlightManagementFrame(connection, manageRecord, transaction, report);
         });
-        passengerButton.addActionListener(e -> {
+        passportButton.addActionListener(e -> {
             dispose();
-            new PassengerManagementFrame(connection, manageRecord, transaction, report);
+            new PassportManagementFrame(connection, manageRecord, transaction, report);
         });
 
         // Add buttons to the panel
         buttonPanel.add(airportButton);
         buttonPanel.add(flightButton);
-        buttonPanel.add(passengerButton);
+        buttonPanel.add(passportButton);
 
         // Back button panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical gap
