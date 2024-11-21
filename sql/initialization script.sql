@@ -1,96 +1,106 @@
 -- initializing tables
-CREATE TABLE aircraft (
-    aircraft_id VARCHAR(10) PRIMARY KEY,
-    aircraft_model VARCHAR(25),
-    max_capacity INT
+CREATE TABLE aircrafts (
+    aircraft_id VARCHAR(10) PRIMARY KEY NOT NULL,
+    aircraft_model VARCHAR(25) NOT NULL,
+    max_capacity INT NOT NULL
 );
 
-CREATE TABLE airport (
-    airport_id INT PRIMARY KEY,
-    name VARCHAR(25),
-    country_name VARCHAR(25),
-    company_id INT
+CREATE TABLE airports (
+    airport_id INT PRIMARY KEY NOT NULL,
+    name VARCHAR(25) NOT NULL,
+    country_name VARCHAR(25) NOT NULL,
+    company_id INT NOT NULL
 );
 
-CREATE TABLE booking (
-    booking_id INT PRIMARY KEY,
-    passenger_id INT,
-    flight_id VARCHAR(5),
-    airport_id INT,
-    booking_date DATETIME,
-    booking_status ENUM('Paid', 'Refunded', 'Pending', 'Rescheduled', 'Completed')
+CREATE TABLE bookings (
+    booking_id INT PRIMARY KEY NOT NULL,
+    passenger_id INT NOT NULL,
+    flight_id VARCHAR(5) NOT NULL,
+    airport_id INT NOT NULL,
+    booking_date DATETIME NOT NULL,
+    booking_status ENUM('Paid', 'Refunded', 'Pending', 'Rescheduled', 'Completed') NOT NULL
 );
 
-CREATE TABLE company (
-    company_id INT PRIMARY KEY,
-    name VARCHAR(25),
-    date_founded DATE
+CREATE TABLE companies (
+    company_id INT PRIMARY KEY NOT NULL,
+    name VARCHAR(25) NOT NULL,
+    date_founded DATE NOT NULL,
+    contact_number BIGINT NOT NULL
 );
 
-CREATE TABLE flight (
-    flight_id VARCHAR(5) PRIMARY KEY,
-    expected_departure_time DATETIME,
-    expected_arrival_time DATETIME,
+CREATE TABLE event_types (
+    event_type_id INT PRIMARY KEY NOT NULL,
+    event_type_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE flights (
+    flight_id VARCHAR(5) PRIMARY KEY NOT NULL,
+    expected_departure_time DATETIME NOT NULL,
+    expected_arrival_time DATETIME NOT NULL,
     actual_departure_time DATETIME,
     actual_arrival_time DATETIME,
-    aircraft_id VARCHAR(10),
-    origin_airport_id INT,
-    dest_airport_id INT,
-    flight_status ENUM('Scheduled', 'Delayed', 'Cancelled', 'On Air', 'Arrived'),
-    seating_capacity INT
+    aircraft_id VARCHAR(10) NOT NULL,
+    origin_airport_id INT NOT NULL,
+    dest_airport_id INT NOT NULL,
+    flight_status ENUM('Scheduled', 'Delayed', 'Cancelled', 'On Air', 'Arrived') NOT NULL,
+    seating_capacity INT NOT NULL
 );
 
-CREATE TABLE flight_log (
-    log_id INT PRIMARY KEY,
-    flight_id VARCHAR(5),
-    log_date DATETIME,
-    event_type ENUM('Departure', 'Arrival', 'Delay', 'Reschedule', 'Maintenance', 'Weather', 'Cancellation')
+CREATE TABLE flight_logs (
+    log_id INT PRIMARY KEY NOT NULL,
+    flight_id VARCHAR(5) NOT NULL,
+    log_date DATETIME NOT NULL,
+    event_type_id INT NOT NULL
 );
 
-CREATE TABLE passenger (
-    passenger_id INT PRIMARY KEY,
-    passport_id INT,
-    contact_number BIGINT,
-    email_address VARCHAR(25)
+CREATE TABLE passengers (
+    passenger_id INT PRIMARY KEY NOT NULL,
+    passport_id INT NOT NULL,
+    contact_number BIGINT NOT NULL,
+    email_address VARCHAR(25) NOT NULL
 );
 
-CREATE TABLE passport (
-    passport_id INT PRIMARY KEY,
-    first_name VARCHAR(25),
+CREATE TABLE passports (
+    passport_id INT PRIMARY KEY NOT NULL,
+    first_name VARCHAR(25) NOT NULL,
     middle_name VARCHAR(25),
-    last_name VARCHAR(25),
-    date_of_birth DATETIME,
-    sex ENUM('Male', 'Female', 'Other'),
-    nationality VARCHAR(25)
+    last_name VARCHAR(25) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    sex ENUM('Male', 'Female', 'Other') NOT NULL,
+    nationality VARCHAR(25) NOT NULL,
+    place_of_issue VARCHAR(25) NOT NULL,
+    issue_date DATE NOT NULL,
+    expiration_date DATE NOT NULL
 );
 
-CREATE TABLE ticket (
-    passenger_id INT,
-    booking_id INT,
-    seat_number VARCHAR(5),
-    price DECIMAL(10,2)
+CREATE TABLE tickets (
+    passenger_id INT NOT NULL,
+    booking_id INT NOT NULL,
+    seat_number VARCHAR(5) NOT NULL,
+    price DECIMAL(10,2) NOT NULL
 );
 
 -- foreign keys
-ALTER TABLE airport
-    ADD FOREIGN KEY (company_id) REFERENCES company(company_id) ON DELETE CASCADE;
+ALTER TABLE airports
+    ADD FOREIGN KEY (company_id) REFERENCES companies(company_id) ON DELETE CASCADE;
 
-ALTER TABLE passenger
-    ADD FOREIGN KEY (passport_id) REFERENCES passport(passport_id) ON DELETE CASCADE;
+ALTER TABLE passengers
+    ADD FOREIGN KEY (passport_id) REFERENCES passports(passport_id) ON DELETE CASCADE;
 
-ALTER TABLE booking
-    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id) ON DELETE CASCADE,
-    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id) ON DELETE CASCADE,
-    ADD FOREIGN KEY (airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE;
+ALTER TABLE bookings
+    ADD FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (flight_id) REFERENCES flights(flight_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (airport_id) REFERENCES airports(airport_id) ON DELETE CASCADE;
 
-ALTER TABLE flight
-    ADD FOREIGN KEY (aircraft_id) REFERENCES aircraft(aircraft_id) ON DELETE CASCADE,
-    ADD FOREIGN KEY (origin_airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE,
-    ADD FOREIGN KEY (dest_airport_id) REFERENCES airport(airport_id) ON DELETE CASCADE;
+ALTER TABLE flights
+    ADD FOREIGN KEY (aircraft_id) REFERENCES aircrafts(aircraft_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (origin_airport_id) REFERENCES airports(airport_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (dest_airport_id) REFERENCES airports(airport_id) ON DELETE CASCADE;
 
-ALTER TABLE ticket
-    ADD FOREIGN KEY (passenger_id) REFERENCES passenger(passenger_id) ON DELETE CASCADE,
-    ADD FOREIGN KEY (booking_id) REFERENCES booking(booking_id) ON DELETE CASCADE;
+ALTER TABLE tickets
+    ADD FOREIGN KEY (passenger_id) REFERENCES passengers(passenger_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (booking_id) REFERENCES bookings(booking_id) ON DELETE CASCADE;
 
-ALTER TABLE flight_log
-    ADD FOREIGN KEY (flight_id) REFERENCES flight(flight_id) ON DELETE CASCADE;
+ALTER TABLE flight_logs
+    ADD FOREIGN KEY (flight_id) REFERENCES flights(flight_id) ON DELETE CASCADE,
+    ADD FOREIGN KEY (event_type_id) REFERENCES event_types(event_type_id) ON DELETE CASCADE;

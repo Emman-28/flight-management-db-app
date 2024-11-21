@@ -1,13 +1,14 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
-DELETE FROM aircraft;
-DELETE FROM airport;
-DELETE FROM company;
-DELETE FROM passenger;
-DELETE FROM passport;
-DELETE FROM flight;
-DELETE FROM booking;
-DELETE FROM ticket;
-DELETE FROM flight_log;
+DELETE FROM aircrafts;
+DELETE FROM airports;
+DELETE FROM companies;
+DELETE FROM event_types;
+DELETE FROM passengers;
+DELETE FROM passports;
+DELETE FROM flights;
+DELETE FROM bookings;
+DELETE FROM tickets;
+DELETE FROM flight_logs;
 
 SET FOREIGN_KEY_CHECKS = 1;
