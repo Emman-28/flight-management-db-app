@@ -1,16 +1,15 @@
 package GUI.ManageRecords;
 
-import operations.*;
 import GUI.*;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import operations.*;
 
 public class AirportManagementFrame extends JFrame {
     private final ManageRecord manageRecord;
@@ -39,7 +38,7 @@ public class AirportManagementFrame extends JFrame {
         selectionPanel.setBackground(Color.WHITE);
 
         selectionPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Space above
-        JLabel selectionMessage = new JLabel("Select an action for the airport records:", SwingConstants.CENTER);
+        JLabel selectionMessage = new JLabel("Select an action for the airports records:", SwingConstants.CENTER);
         selectionMessage.setFont(new Font("Arial", Font.BOLD, 16));
         selectionMessage.setForeground(Color.BLACK);
         selectionMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -52,19 +51,19 @@ public class AirportManagementFrame extends JFrame {
         buttonPanel.setBackground(Color.WHITE);
         Dimension buttonSize = new Dimension(200, 35);
 
-        JButton createButton = new JButton("Create Airport Record");
+        JButton createButton = new JButton("Create Airports Record");
         createButton.setPreferredSize(buttonSize);
         createButton.addActionListener(e -> showCreateRecordDialog());
 
-        JButton updateButton = new JButton("Update Airport Record");
+        JButton updateButton = new JButton("Update Airports Record");
         updateButton.setPreferredSize(buttonSize);
         // TODO: Add functionality for updating records
 
-        JButton readButton = new JButton("Read Airport Record");
+        JButton readButton = new JButton("Read Airports Record");
         readButton.setPreferredSize(buttonSize);
         readButton.addActionListener(e -> showReadRecordDialog());
 
-        JButton deleteButton = new JButton("Delete Airport Record");
+        JButton deleteButton = new JButton("Delete Airports Record");
         deleteButton.setPreferredSize(buttonSize);
         // TODO: Add functionality for deleting records
 
@@ -87,7 +86,7 @@ public class AirportManagementFrame extends JFrame {
     }
 
     private void showCreateRecordDialog() {
-        JDialog dialog = new JDialog(this, "Create Airport Record", true);
+        JDialog dialog = new JDialog(this, "Create Airports Record", true);
         dialog.setSize(500, 350);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
@@ -96,7 +95,7 @@ public class AirportManagementFrame extends JFrame {
         inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel idLabel = new JLabel("Airport ID (11 chars):");
+        JLabel idLabel = new JLabel("Airports ID (11 chars):");
         JTextField idField = new JTextField();
         JLabel nameLabel = new JLabel("Name (25 chars):");
         JTextField nameField = new JTextField();
@@ -164,7 +163,7 @@ public class AirportManagementFrame extends JFrame {
                     throw new IllegalArgumentException("Input length exceeds allowed character limits.");
                 }
 
-                manageRecord.create("airport", new String[]{"airport_id", "name", "country_name", "company_id"},
+                manageRecord.create("airports", new String[]{"airport_id", "name", "country_name", "company_id"},
                         new Object[]{airport_id, name, country_name, company_id});
                 JOptionPane.showMessageDialog(dialog, "Record successfully created!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
@@ -172,7 +171,7 @@ public class AirportManagementFrame extends JFrame {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } catch (SQLException ex) {
                 if (ex.getMessage().contains("Duplicate entry")) {
-                    JOptionPane.showMessageDialog(dialog, "Airport ID already exists. Please use a unique ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialog, "Airports ID already exists. Please use a unique ID.", "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(dialog, "Error creating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -204,7 +203,7 @@ public class AirportManagementFrame extends JFrame {
     }
 
     private void showReadRecordDialog() {
-        JDialog dialog = new JDialog(this, "Read Airport Records", true);
+        JDialog dialog = new JDialog(this, "Read Airports Records", true);
         dialog.setSize(300, 200);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
@@ -258,7 +257,7 @@ public class AirportManagementFrame extends JFrame {
         gbc.anchor = GridBagConstraints.WEST; // Left-align components
 
         // Labels for information and order by
-        JLabel includeLabel = new JLabel("<html><body>Select Airport Information to Include (min. 2):</body></html>");
+        JLabel includeLabel = new JLabel("<html><body>Select Airports Information to Include (min. 2):</body></html>");
         JLabel orderByLabel = new JLabel("Order By (max. 1):");
 
         // Positioning labels with GridBagLayout
@@ -268,8 +267,8 @@ public class AirportManagementFrame extends JFrame {
         selectionPanel.add(orderByLabel, gbc);
 
         // Info checkboxes
-        JCheckBox airportIdCheckbox = new JCheckBox("Airport ID");
-        JCheckBox airportNameCheckbox = new JCheckBox("Airport Name");
+        JCheckBox airportIdCheckbox = new JCheckBox("Airports ID");
+        JCheckBox airportNameCheckbox = new JCheckBox("Airports Name");
         JCheckBox countryNameCheckbox = new JCheckBox("Country Name");
         JCheckBox companyIdCheckbox = new JCheckBox("Company ID");
 
@@ -277,8 +276,8 @@ public class AirportManagementFrame extends JFrame {
         JCheckBox allCheckbox = new JCheckBox("All");
 
         // Order by checkboxes (initially disabled)
-        JCheckBox orderByAirportId = new JCheckBox("Airport ID");
-        JCheckBox orderByAirportName = new JCheckBox("Airport Name");
+        JCheckBox orderByAirportId = new JCheckBox("Airports ID");
+        JCheckBox orderByAirportName = new JCheckBox("Airports Name");
         JCheckBox orderByCountryName = new JCheckBox("Country Name");
         JCheckBox orderByCompanyId = new JCheckBox("Company ID");
 
@@ -384,7 +383,7 @@ public class AirportManagementFrame extends JFrame {
         readButton.addActionListener(e -> {
             List<String> columns = new ArrayList<>();
 
-            // Check selected columns for airport info
+            // Check selected columns for airports info
             if (airportIdCheckbox.isSelected()) columns.add("airport_id");
             if (airportNameCheckbox.isSelected()) columns.add("name");
             if (countryNameCheckbox.isSelected()) columns.add("country_name");
@@ -392,7 +391,7 @@ public class AirportManagementFrame extends JFrame {
 
             // Constructing the SELECT query
             StringBuilder query = new StringBuilder("SELECT ");
-            query.append(String.join(", ", columns)).append(" FROM airport");
+            query.append(String.join(", ", columns)).append(" FROM airports");
 
             // Add ORDER BY clause if selected
             if (orderByAirportId.isSelected()) query.append(" ORDER BY airport_id");

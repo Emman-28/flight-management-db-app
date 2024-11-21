@@ -1,11 +1,10 @@
 package GUI;
 
 import GUI.ManageRecords.*;
-import operations.*;
-
-import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import javax.swing.*;
+import operations.*;
 
 public class ManageRecordsFrame extends JFrame {
 
