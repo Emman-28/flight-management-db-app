@@ -224,8 +224,7 @@ public class AirportManagementFrame extends JFrame {
 
         inputButton.addActionListener(e -> {
             dialog.dispose();
-            JOptionPane.showMessageDialog(this, "Read Record via Input functionality not implemented yet.");
-            // Add functionality here if needed
+            showReadInputDialog();
         });
 
         cancelButton.addActionListener(e -> dialog.dispose());
@@ -436,5 +435,139 @@ public class AirportManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
+    private void showReadInputDialog() {
+        JDialog dialog = new JDialog(this, "Read Airports Record via Input", true);
+        dialog.setSize(1000, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Labels and text fields
+        JLabel airportIdLabel = new JLabel("Airport ID (Single or Range, e.g., 1 or 1-10):");
+        JTextField airportIdField = new JTextField();
+
+        JLabel airportNameLabel = new JLabel("Airport Name (Single or Comma-separated, e.g., JFK, LAX):");
+        JTextField airportNameField = new JTextField();
+
+        JLabel countryNameLabel = new JLabel("Country Name (Single or Comma-separated, e.g., UAE, United Kingdom):");
+        JTextField countryNameField = new JTextField();
+
+        JLabel companyIdLabel = new JLabel("Company ID (Single or Range, e.g., 5 or 5-15):");
+        JTextField companyIdField = new JTextField();
+
+        inputPanel.add(airportIdLabel);
+        inputPanel.add(airportIdField);
+        inputPanel.add(airportNameLabel);
+        inputPanel.add(airportNameField);
+        inputPanel.add(countryNameLabel);
+        inputPanel.add(countryNameField);
+        inputPanel.add(companyIdLabel);
+        inputPanel.add(companyIdField);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton searchButton = new JButton("Search");
+        JButton cancelButton = new JButton("Cancel");
+
+        searchButton.addActionListener(e -> {
+            try {
+                // Build WHERE clause based on input fields
+                StringBuilder whereClause = new StringBuilder();
+
+                // Parse Airport ID
+                if (!airportIdField.getText().trim().isEmpty()) {
+                    String airportIdInput = airportIdField.getText().trim();
+                    if (airportIdInput.contains("-")) {
+                        String[] range = airportIdInput.split("-");
+                        whereClause.append("airport_id BETWEEN ")
+                                .append(range[0].trim())
+                                .append(" AND ")
+                                .append(range[1].trim())
+                                .append(" AND ");
+                    } else {
+                        whereClause.append("airport_id = ").append(airportIdInput).append(" AND ");
+                    }
+                }
+
+                // Parse Airport Name
+                if (!airportNameField.getText().trim().isEmpty()) {
+                    String[] airportNames = airportNameField.getText().trim().split(",");
+                    whereClause.append("(");
+                    for (String name : airportNames) {
+                        whereClause.append("name = '").append(name.trim()).append("' OR ");
+                    }
+                    whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
+                    whereClause.append(") AND ");
+                }
+
+                // Parse Country Name
+                if (!countryNameField.getText().trim().isEmpty()) {
+                    String[] countryNames = countryNameField.getText().trim().split(",");
+                    whereClause.append("(");
+                    for (String country : countryNames) {
+                        whereClause.append("country_name = '").append(country.trim()).append("' OR ");
+                    }
+                    whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
+                    whereClause.append(") AND ");
+                }
+
+                // Parse Company ID
+                if (!companyIdField.getText().trim().isEmpty()) {
+                    String companyIdInput = companyIdField.getText().trim();
+                    if (companyIdInput.contains("-")) {
+                        String[] range = companyIdInput.split("-");
+                        whereClause.append("company_id BETWEEN ")
+                                .append(range[0].trim())
+                                .append(" AND ")
+                                .append(range[1].trim())
+                                .append(" AND ");
+                    } else {
+                        whereClause.append("company_id = ").append(companyIdInput).append(" AND ");
+                    }
+                }
+
+                // Remove the last " AND " if the clause exists
+                if (whereClause.length() > 0) {
+                    whereClause.setLength(whereClause.length() - 5);
+                }
+
+                // Construct the final query
+                String query = whereClause.length() > 0 ? whereClause.toString() : null;
+                List<Object[]> results;
+                List<String> columnNames = List.of("Airport ID", "Name", "Country Name", "Company ID");
+
+                if (query == null || query.isEmpty()) {
+                    results = manageRecord.readWithQuery("SELECT * FROM airports");
+                } else {
+                    results = manageRecord.readWithQuery("SELECT * FROM airports WHERE " + query);
+                }
+
+                // Prepare data for JTable
+                Object[][] data = new Object[results.size()][columnNames.size()];
+                for (int i = 0; i < results.size(); i++) {
+                    data[i] = results.get(i);
+                }
+
+                // Create JTable for displaying results
+                JTable resultTable = new JTable(data, columnNames.toArray());
+                JScrollPane scrollPane = new JScrollPane(resultTable);
+                JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(searchButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(inputPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
 
 }
