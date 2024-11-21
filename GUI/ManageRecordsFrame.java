@@ -45,11 +45,15 @@ public class ManageRecordsFrame extends JFrame {
         JButton airportButton = new JButton("Airport Record Management");
         JButton flightButton = new JButton("Flight Record Management");
         JButton passportButton = new JButton("Passport Record Management");
+        JButton companyButton = new JButton("Company Record Management");  // New button for Company Record Management
+        JButton aircraftButton = new JButton("Aircraft Record Management");  // New button for Aircraft Record Management
 
         // Set uniform size for all buttons
         airportButton.setPreferredSize(buttonSize);
         flightButton.setPreferredSize(buttonSize);
         passportButton.setPreferredSize(buttonSize);
+        companyButton.setPreferredSize(buttonSize);  // Set size for new button
+        aircraftButton.setPreferredSize(buttonSize); // Set size for new button
 
         // Add action listeners to each button
         airportButton.addActionListener(e -> {
@@ -64,11 +68,21 @@ public class ManageRecordsFrame extends JFrame {
             dispose();
             new PassportManagementFrame(connection, manageRecord, transaction, report);
         });
+        companyButton.addActionListener(e -> {
+            dispose();
+            new CompanyManagementFrame(connection, manageRecord, transaction, report); // New Company Management Frame
+        });
+        aircraftButton.addActionListener(e -> {
+            dispose();
+            new AircraftManagementFrame(connection, manageRecord, transaction, report); // New Aircraft Management Frame
+        });
 
         // Add buttons to the panel
         buttonPanel.add(airportButton);
         buttonPanel.add(flightButton);
         buttonPanel.add(passportButton);
+        buttonPanel.add(companyButton);  // Add new button to panel
+        buttonPanel.add(aircraftButton); // Add new button to panel
 
         // Back button panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical gap
