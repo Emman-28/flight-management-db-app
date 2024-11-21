@@ -13,8 +13,14 @@ public class Main {
             System.out.println("Connected to the database successfully!");
             System.out.println("\nWelcome to the Flight Database Management System!\n");
 
+            // records management
             ManageRecord record = new ManageRecord(connection);
+            AircraftManager aircraftManager = new AircraftManager(connection);
+
+            // transactions
             ExecuteTransaction transaction = new ExecuteTransaction(connection);
+
+            // report generation
             GenerateReport report = new GenerateReport(connection);
 
             // Pass the connection and managers to the GUI
