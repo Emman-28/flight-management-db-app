@@ -5,11 +5,12 @@ import operations.ExecuteTransaction;
 import operations.GenerateReport;
 
 import javax.swing.*;
+import java.sql.*;
 import java.awt.*;
 
 public class GenerateReportsFrame extends JFrame {
 
-    public GenerateReportsFrame(ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
+    public GenerateReportsFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         setTitle("Generate Reports");
         setSize(500, 400);
         setLocationRelativeTo(null);
@@ -25,7 +26,7 @@ public class GenerateReportsFrame extends JFrame {
         JButton backButton = new JButton("Back to Main Menu");
         backButton.addActionListener(e -> {
             dispose();
-            new MainFrame(manageRecord, transaction, report); // Pass all three parameters to MainFrame
+            new MainFrame(connection, manageRecord, transaction, report); // Pass all three parameters to MainFrame
         });
 
         panel.add(backButton, BorderLayout.SOUTH);

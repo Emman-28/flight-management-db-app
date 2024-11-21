@@ -4,17 +4,22 @@ import operations.*;
 import GUI.*;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AirportManagementFrame extends JFrame {
     private final ManageRecord manageRecord;
     private final ExecuteTransaction transaction;
     private final GenerateReport report;
+    private final Connection connection;
 
-    public AirportManagementFrame(ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
+    public AirportManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
+        this.connection = connection;
         this.manageRecord = manageRecord;
         this.transaction = transaction;
         this.report = report;
@@ -57,7 +62,7 @@ public class AirportManagementFrame extends JFrame {
 
         JButton readButton = new JButton("Read Airport Record");
         readButton.setPreferredSize(buttonSize);
-        // TODO: Add functionality for reading records
+        readButton.addActionListener(e -> showReadRecordDialog());
 
         JButton deleteButton = new JButton("Delete Airport Record");
         deleteButton.setPreferredSize(buttonSize);
@@ -67,7 +72,7 @@ public class AirportManagementFrame extends JFrame {
         backButton.setPreferredSize(buttonSize);
         backButton.addActionListener(e -> {
             dispose();
-            new ManageRecordsFrame(manageRecord, transaction, report); // Pass all three parameters back
+            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Pass all three parameters back
         });
 
         buttonPanel.add(createButton);
@@ -83,12 +88,12 @@ public class AirportManagementFrame extends JFrame {
 
     private void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Airport Record", true);
-        dialog.setSize(400, 300);
+        dialog.setSize(500, 350);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(4, 2, 10, 10));
+        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel idLabel = new JLabel("Airport ID (11 chars):");
@@ -97,9 +102,13 @@ public class AirportManagementFrame extends JFrame {
         JTextField nameField = new JTextField();
         JLabel countryLabel = new JLabel("Country (25 chars):");
         JTextField countryField = new JTextField();
-        JLabel companyLabel = new JLabel("Company ID (11 chars):");
-        JTextField companyField = new JTextField();
+        JLabel companyLabel = new JLabel("Select Company:");
 
+        // Create company dropdown
+        JComboBox<String> companyDropdown = new JComboBox<>();
+        populateCompanyDropdown(companyDropdown); // Method to load companies from the database
+
+        // Add components to the input panel
         inputPanel.add(idLabel);
         inputPanel.add(idField);
         inputPanel.add(nameLabel);
@@ -107,7 +116,13 @@ public class AirportManagementFrame extends JFrame {
         inputPanel.add(countryLabel);
         inputPanel.add(countryField);
         inputPanel.add(companyLabel);
-        inputPanel.add(companyField);
+        inputPanel.add(companyDropdown);
+
+        // Add message below the dropdown
+        JLabel infoLabel = new JLabel("<html><i>If desired company is missing from the options, proceed to Company Record Management.</i></html>");
+        infoLabel.setForeground(Color.GRAY);
+        inputPanel.add(new JLabel()); // Empty cell for alignment
+        inputPanel.add(infoLabel);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton createButton = new JButton("Create");
@@ -121,7 +136,7 @@ public class AirportManagementFrame extends JFrame {
                 createButton.setEnabled(!idField.getText().trim().isEmpty() &&
                         !nameField.getText().trim().isEmpty() &&
                         !countryField.getText().trim().isEmpty() &&
-                        !companyField.getText().trim().isEmpty());
+                        companyDropdown.getSelectedItem() != null);
             }
 
             public void insertUpdate(DocumentEvent e) { checkFields(); }
@@ -132,26 +147,27 @@ public class AirportManagementFrame extends JFrame {
         idField.getDocument().addDocumentListener(fieldListener);
         nameField.getDocument().addDocumentListener(fieldListener);
         countryField.getDocument().addDocumentListener(fieldListener);
-        companyField.getDocument().addDocumentListener(fieldListener);
 
         createButton.addActionListener(e -> {
-            String airportId = idField.getText().trim();
+            String airport_id = idField.getText().trim();
             String name = nameField.getText().trim();
-            String country = countryField.getText().trim();
-            String companyId = companyField.getText().trim();
+            String country_name = countryField.getText().trim();
+            String selectedCompany = (String) companyDropdown.getSelectedItem();
 
             try {
-                if (airportId.length() > 11 || name.length() > 25 || country.length() > 25 || companyId.length() > 11) {
+                if (selectedCompany == null || !selectedCompany.contains(" - ")) {
+                    throw new IllegalArgumentException("Invalid company selected.");
+                }
+                int company_id = Integer.parseInt(selectedCompany.split(" - ")[0].trim());
+
+                if (airport_id.length() > 11 || name.length() > 25 || country_name.length() > 25) {
                     throw new IllegalArgumentException("Input length exceeds allowed character limits.");
                 }
 
-                int companyIdInt = Integer.parseInt(companyId); // Validate numeric input
-                manageRecord.create("airport", new String[]{"AirportID", "Name", "Country", "CompanyID"},
-                        new Object[]{airportId, name, country, companyIdInt});
+                manageRecord.create("airport", new String[]{"airport_id", "name", "country_name", "company_id"},
+                        new Object[]{airport_id, name, country_name, company_id});
                 JOptionPane.showMessageDialog(dialog, "Record successfully created!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "Company ID must be a valid integer.", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (IllegalArgumentException ex) {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } catch (SQLException ex) {
@@ -172,4 +188,254 @@ public class AirportManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
+
+    // Helper method to populate the company dropdown
+    private void populateCompanyDropdown(JComboBox<String> companyDropdown) {
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT company_id, name FROM company")) {
+            while (rs.next()) {
+                String companyId = rs.getString("company_id");
+                String companyName = rs.getString("name");
+                companyDropdown.addItem(companyId + " - " + companyName); // Display both ID and name
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error fetching companies: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showReadRecordDialog() {
+        JDialog dialog = new JDialog(this, "Read Airport Records", true);
+        dialog.setSize(300, 200);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton filterButton = new JButton("Read Records via Filters");
+        JButton inputButton = new JButton("Read Record via Input");
+        JButton cancelButton = new JButton("Cancel");
+
+        filterButton.setPreferredSize(new Dimension(200, 35));
+        inputButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(200, 35));
+
+        filterButton.addActionListener(e -> {
+            dialog.dispose();
+            showFilterDialog();
+        });
+
+        inputButton.addActionListener(e -> {
+            dialog.dispose();
+            JOptionPane.showMessageDialog(this, "Read Record via Input functionality not implemented yet.");
+            // Add functionality here if needed
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(filterButton);
+        buttonPanel.add(inputButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(buttonPanel, BorderLayout.CENTER);
+        dialog.setVisible(true);
+    }
+
+
+    private void showFilterDialog() {
+        // Create dialog with smaller size
+        JDialog dialog = new JDialog(this, "Read Records via Filters", true);
+        dialog.setSize(600, 400);  // Smaller size for a cleaner look
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        // Create a panel for the selections
+        JPanel selectionPanel = new JPanel();
+        selectionPanel.setLayout(new GridBagLayout()); // Use GridBagLayout for better control of layout
+        GridBagConstraints gbc = new GridBagConstraints();
+        selectionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Set GridBagLayout constraints
+        gbc.insets = new Insets(5, 10, 5, 10); // Adds padding between components
+        gbc.anchor = GridBagConstraints.WEST; // Left-align components
+
+        // Labels for information and order by
+        JLabel includeLabel = new JLabel("<html><body>Select Airport Information to Include (min. 2):</body></html>");
+        JLabel orderByLabel = new JLabel("Order By (max. 1):");
+
+        // Positioning labels with GridBagLayout
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        selectionPanel.add(includeLabel, gbc);
+        gbc.gridx = 2; gbc.gridwidth = 2;
+        selectionPanel.add(orderByLabel, gbc);
+
+        // Info checkboxes
+        JCheckBox airportIdCheckbox = new JCheckBox("Airport ID");
+        JCheckBox airportNameCheckbox = new JCheckBox("Airport Name");
+        JCheckBox countryNameCheckbox = new JCheckBox("Country Name");
+        JCheckBox companyIdCheckbox = new JCheckBox("Company ID");
+
+        // "All" checkbox placed below the other checkboxes
+        JCheckBox allCheckbox = new JCheckBox("All");
+
+        // Order by checkboxes (initially disabled)
+        JCheckBox orderByAirportId = new JCheckBox("Airport ID");
+        JCheckBox orderByAirportName = new JCheckBox("Airport Name");
+        JCheckBox orderByCountryName = new JCheckBox("Country Name");
+        JCheckBox orderByCompanyId = new JCheckBox("Company ID");
+
+        // Initially disable order-by checkboxes
+        orderByAirportId.setEnabled(false);
+        orderByAirportName.setEnabled(false);
+        orderByCountryName.setEnabled(false);
+        orderByCompanyId.setEnabled(false);
+
+        // Add info checkboxes to the panel (left-aligned)
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        selectionPanel.add(airportIdCheckbox, gbc);
+        gbc.gridx = 0; gbc.gridy = 2;
+        selectionPanel.add(airportNameCheckbox, gbc);
+        gbc.gridx = 0; gbc.gridy = 3;
+        selectionPanel.add(countryNameCheckbox, gbc);
+        gbc.gridx = 0; gbc.gridy = 4;
+        selectionPanel.add(companyIdCheckbox, gbc);
+
+        // Add order-by checkboxes to the panel (left-aligned)
+        gbc.gridx = 2; gbc.gridy = 2;
+        selectionPanel.add(orderByAirportId, gbc);
+        gbc.gridx = 2; gbc.gridy = 3;
+        selectionPanel.add(orderByAirportName, gbc);
+        gbc.gridx = 2; gbc.gridy = 4;
+        selectionPanel.add(orderByCountryName, gbc);
+        gbc.gridx = 2; gbc.gridy = 5;
+        selectionPanel.add(orderByCompanyId, gbc);
+
+        // Add "All" checkbox below the other checkboxes
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
+        selectionPanel.add(allCheckbox, gbc);
+
+        // Read and Cancel Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton readButton = new JButton("Read");
+        JButton cancelButton = new JButton("Cancel");
+        readButton.setEnabled(false);
+
+        // Logic to enable/disable buttons and checkboxes
+        ActionListener checkboxListener = e -> {
+            int selectedInfoCount = (airportIdCheckbox.isSelected() ? 1 : 0) +
+                    (airportNameCheckbox.isSelected() ? 1 : 0) +
+                    (countryNameCheckbox.isSelected() ? 1 : 0) +
+                    (companyIdCheckbox.isSelected() ? 1 : 0);
+
+            int selectedOrderByCount = (orderByAirportId.isSelected() ? 1 : 0) +
+                    (orderByAirportName.isSelected() ? 1 : 0) +
+                    (orderByCountryName.isSelected() ? 1 : 0) +
+                    (orderByCompanyId.isSelected() ? 1 : 0);
+
+            // Enable/disable read button based on selection criteria
+            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount <= 1);
+
+            // Enable order by checkboxes only if corresponding info checkbox is selected
+            orderByAirportId.setEnabled(airportIdCheckbox.isSelected());
+            orderByAirportName.setEnabled(airportNameCheckbox.isSelected());
+            orderByCountryName.setEnabled(countryNameCheckbox.isSelected());
+            orderByCompanyId.setEnabled(companyIdCheckbox.isSelected());
+
+            // Untick order-by checkboxes if corresponding info checkbox is unticked
+            if (!airportIdCheckbox.isSelected()) orderByAirportId.setSelected(false);
+            if (!airportNameCheckbox.isSelected()) orderByAirportName.setSelected(false);
+            if (!countryNameCheckbox.isSelected()) orderByCountryName.setSelected(false);
+            if (!companyIdCheckbox.isSelected()) orderByCompanyId.setSelected(false);
+
+            // Update "All" checkbox status based on the other checkboxes
+            allCheckbox.setSelected(airportIdCheckbox.isSelected() &&
+                    airportNameCheckbox.isSelected() &&
+                    countryNameCheckbox.isSelected() &&
+                    companyIdCheckbox.isSelected());
+        };
+
+        // Add listeners to all checkboxes
+        airportIdCheckbox.addActionListener(checkboxListener);
+        airportNameCheckbox.addActionListener(checkboxListener);
+        countryNameCheckbox.addActionListener(checkboxListener);
+        companyIdCheckbox.addActionListener(checkboxListener);
+        orderByAirportId.addActionListener(checkboxListener);
+        orderByAirportName.addActionListener(checkboxListener);
+        orderByCountryName.addActionListener(checkboxListener);
+        orderByCompanyId.addActionListener(checkboxListener);
+
+        // All checkbox logic
+        allCheckbox.addActionListener(e -> {
+            boolean isSelected = allCheckbox.isSelected();
+            airportIdCheckbox.setSelected(isSelected);
+            airportNameCheckbox.setSelected(isSelected);
+            countryNameCheckbox.setSelected(isSelected);
+            companyIdCheckbox.setSelected(isSelected);
+
+            // Disable other checkboxes when "All" is selected
+            airportIdCheckbox.setEnabled(!isSelected);
+            airportNameCheckbox.setEnabled(!isSelected);
+            countryNameCheckbox.setEnabled(!isSelected);
+            companyIdCheckbox.setEnabled(!isSelected);
+
+            // Update the checkbox listener manually for all info checkboxes
+            checkboxListener.actionPerformed(null);
+        });
+
+        // Read Button Logic
+        readButton.addActionListener(e -> {
+            List<String> columns = new ArrayList<>();
+
+            // Check selected columns for airport info
+            if (airportIdCheckbox.isSelected()) columns.add("airport_id");
+            if (airportNameCheckbox.isSelected()) columns.add("name");
+            if (countryNameCheckbox.isSelected()) columns.add("country_name");
+            if (companyIdCheckbox.isSelected()) columns.add("company_id");
+
+            // Constructing the SELECT query
+            StringBuilder query = new StringBuilder("SELECT ");
+            query.append(String.join(", ", columns)).append(" FROM airport");
+
+            // Add ORDER BY clause if selected
+            if (orderByAirportId.isSelected()) query.append(" ORDER BY airport_id");
+            else if (orderByAirportName.isSelected()) query.append(" ORDER BY name");
+            else if (orderByCountryName.isSelected()) query.append(" ORDER BY country_name");
+            else if (orderByCompanyId.isSelected()) query.append(" ORDER BY company_id");
+
+            try {
+                // Pass query to manageRecord for execution
+                List<Object[]> results = manageRecord.readWithQuery(query.toString());
+
+                // Convert results into a table
+                String[] columnNames = columns.toArray(new String[0]);
+                Object[][] data = new Object[results.size()][columns.size()];
+
+                for (int i = 0; i < results.size(); i++) {
+                    Object[] row = results.get(i);
+                    for (int j = 0; j < row.length; j++) {
+                        data[i][j] = row[j];
+                    }
+                }
+
+                // Create a JTable for displaying the results
+                JTable resultTable = new JTable(data, columnNames);
+                JScrollPane scrollPane = new JScrollPane(resultTable);
+                JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog, "Error executing query: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Cancel Button Logic
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Add buttons to the button panel
+        buttonPanel.add(readButton);
+        buttonPanel.add(cancelButton);
+
+        // Add the panels to the dialog
+        dialog.add(selectionPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+
 }

@@ -1,16 +1,15 @@
 package GUI;
 
 import GUI.ManageRecords.*;
+import operations.*;
 
 import javax.swing.*;
 import java.awt.*;
-import operations.ManageRecord;
-import operations.ExecuteTransaction;
-import operations.GenerateReport;
+import java.sql.*;
 
 public class ManageRecordsFrame extends JFrame {
 
-    public ManageRecordsFrame(ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
+    public ManageRecordsFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         setTitle("Manage Records");
         setSize(500, 400);
         setLocationRelativeTo(null);
@@ -56,15 +55,15 @@ public class ManageRecordsFrame extends JFrame {
         // Add action listeners to each button
         airportButton.addActionListener(e -> {
             dispose();
-            new AirportManagementFrame(manageRecord, transaction, report);
+            new AirportManagementFrame(connection, manageRecord, transaction, report);
         });
         flightButton.addActionListener(e -> {
             dispose();
-            new FlightManagementFrame(manageRecord, transaction, report);
+            new FlightManagementFrame(connection, manageRecord, transaction, report);
         });
         passengerButton.addActionListener(e -> {
             dispose();
-            new PassengerManagementFrame(manageRecord, transaction, report);
+            new PassengerManagementFrame(connection, manageRecord, transaction, report);
         });
 
         // Add buttons to the panel
@@ -79,7 +78,7 @@ public class ManageRecordsFrame extends JFrame {
         backButton.setPreferredSize(new Dimension(150, 30));
         backButton.addActionListener(e -> {
             dispose();
-            new MainFrame(manageRecord, transaction, report); // Reopen MainFrame
+            new MainFrame(connection, manageRecord, transaction, report); // Reopen MainFrame
         });
         bottomPanel.add(backButton);
 

@@ -1,12 +1,14 @@
 package GUI;
 
 import operations.*;
+import java.sql.*;
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
 
 public class MainFrame {
 
-    public MainFrame(ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
+    public MainFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
         // Main frame setup
         JFrame frame = new JFrame("Flight Database Management System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,20 +62,30 @@ public class MainFrame {
         // Add action listeners
         manageRecordsButton.addActionListener(e -> {
             frame.dispose();
-            new ManageRecordsFrame(record, transaction, report); // Pass all necessary parameters
+            new ManageRecordsFrame(connection, record, transaction, report); // Pass all necessary parameters
         });
 
         executeTransactionsButton.addActionListener(e -> {
             frame.dispose();
-            new ExecuteTransactionsFrame(record, transaction, report);
+            new ExecuteTransactionsFrame(connection, record, transaction, report);
         });
 
         generateReportsButton.addActionListener(e -> {
             frame.dispose();
-            new GenerateReportsFrame(record, transaction, report);
+            new GenerateReportsFrame(connection, record, transaction, report);
         });
 
-        exitSystemButton.addActionListener(e -> System.exit(0));
+        exitSystemButton.addActionListener(e -> {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    connection.close();
+                    System.out.println("Connection closed successfully.");
+                }
+            } catch (SQLException ex) {
+                System.err.println("Failed to close the connection: " + ex.getMessage());
+            }
+            System.exit(0);
+        });
 
         centerPanel.add(buttonPanel, BorderLayout.CENTER);
         panel.add(centerPanel, BorderLayout.CENTER);
