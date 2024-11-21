@@ -17,6 +17,7 @@ public class Main {
             ManageRecord record = new ManageRecord(connection);
             AircraftManager aircraftManager = new AircraftManager(connection);
             FlightManager flightManager = new FlightManager(connection);
+            FlightLogManager flightLogManager = new FlightLogManager(connection);
 
             // transactions
             ExecuteTransaction transaction = new ExecuteTransaction(connection);
