@@ -191,7 +191,7 @@ public class AirportManagementFrame extends JFrame {
     // Helper method to populate the company dropdown
     private void populateCompanyDropdown(JComboBox<String> companyDropdown) {
         try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT company_id, name FROM company")) {
+             ResultSet rs = stmt.executeQuery("SELECT company_id, name FROM companies")) {
             while (rs.next()) {
                 String companyId = rs.getString("company_id");
                 String companyName = rs.getString("name");
