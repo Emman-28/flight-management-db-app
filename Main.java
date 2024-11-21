@@ -1,6 +1,7 @@
 import java.sql.*;
 import java.util.Scanner;
 import operations.*;
+import GUI.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,7 +23,8 @@ public class Main {
             ExecuteTransaction transaction = new ExecuteTransaction(connection);
             GenerateReport report = new GenerateReport(connection);
 
-            while(true) {
+            MainFrame appGUI = new MainFrame(record, transaction, report);
+            /**while(true) {
                 // displaying options
                 System.out.println("You can command the following operations:");
                 System.out.println("[1] Manage Records");
@@ -107,7 +109,7 @@ public class Main {
                     default:
                         System.out.println("Invalid option, please input a valid option.\n");
                 }
-            }
+            }**/
         } catch(SQLException e) {
             System.err.println("An error occurred while interacting with the database: " + e.getMessage());
         } finally {
