@@ -57,7 +57,7 @@ public class AirportManagementFrame extends JFrame {
 
         JButton updateButton = new JButton("Update Airports Record");
         updateButton.setPreferredSize(buttonSize);
-        // TODO: Add functionality for updating records
+        updateButton.addActionListener(e -> showUpdateDialog());
 
         JButton readButton = new JButton("Read Airports Record");
         readButton.setPreferredSize(buttonSize);
@@ -87,16 +87,19 @@ public class AirportManagementFrame extends JFrame {
 
     private void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Airports Record", true);
-        dialog.setSize(500, 350);
+        dialog.setSize(600, 380);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setLayout(new GridLayout(5, 2, 10, 10)); // Adjusted for 5 rows
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel idLabel = new JLabel("Airports ID (11 chars):");
-        JTextField idField = new JTextField();
+        // Fetch the next airport ID
+        int nextAirportId = getNextAirportIdFromDatabase();
+
+        // Create components
+        JLabel idLabel = new JLabel("Assigned Airport ID: " + nextAirportId);
         JLabel nameLabel = new JLabel("Name (25 chars):");
         JTextField nameField = new JTextField();
         JLabel countryLabel = new JLabel("Country (25 chars):");
@@ -107,22 +110,23 @@ public class AirportManagementFrame extends JFrame {
         JComboBox<String> companyDropdown = new JComboBox<>();
         populateCompanyDropdown(companyDropdown); // Method to load companies from the database
 
-        // Add components to the input panel
-        inputPanel.add(idLabel);
-        inputPanel.add(idField);
-        inputPanel.add(nameLabel);
+        // Add components in the correct order
+        inputPanel.add(idLabel); // Assigned ID
+        inputPanel.add(new JLabel()); // Empty cell for alignment
+        inputPanel.add(nameLabel); // Airport Name
         inputPanel.add(nameField);
-        inputPanel.add(countryLabel);
+        inputPanel.add(countryLabel); // Country Name
         inputPanel.add(countryField);
-        inputPanel.add(companyLabel);
+        inputPanel.add(companyLabel); // Select Company
         inputPanel.add(companyDropdown);
 
-        // Add message below the dropdown
+        // Add an info label at the bottom
         JLabel infoLabel = new JLabel("<html><i>If desired company is missing from the options, proceed to Company Record Management.</i></html>");
         infoLabel.setForeground(Color.GRAY);
         inputPanel.add(new JLabel()); // Empty cell for alignment
         inputPanel.add(infoLabel);
 
+        // Create buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton createButton = new JButton("Create");
         JButton cancelButton = new JButton("Cancel");
@@ -132,8 +136,7 @@ public class AirportManagementFrame extends JFrame {
         // Enable the create button only if all fields are filled
         DocumentListener fieldListener = new DocumentListener() {
             private void checkFields() {
-                createButton.setEnabled(!idField.getText().trim().isEmpty() &&
-                        !nameField.getText().trim().isEmpty() &&
+                createButton.setEnabled(!nameField.getText().trim().isEmpty() &&
                         !countryField.getText().trim().isEmpty() &&
                         companyDropdown.getSelectedItem() != null);
             }
@@ -143,12 +146,10 @@ public class AirportManagementFrame extends JFrame {
             public void changedUpdate(DocumentEvent e) { checkFields(); }
         };
 
-        idField.getDocument().addDocumentListener(fieldListener);
         nameField.getDocument().addDocumentListener(fieldListener);
         countryField.getDocument().addDocumentListener(fieldListener);
 
         createButton.addActionListener(e -> {
-            String airport_id = idField.getText().trim();
             String name = nameField.getText().trim();
             String country_name = countryField.getText().trim();
             String selectedCompany = (String) companyDropdown.getSelectedItem();
@@ -159,19 +160,19 @@ public class AirportManagementFrame extends JFrame {
                 }
                 int company_id = Integer.parseInt(selectedCompany.split(" - ")[0].trim());
 
-                if (airport_id.length() > 11 || name.length() > 25 || country_name.length() > 25) {
+                if (name.length() > 25 || country_name.length() > 25) {
                     throw new IllegalArgumentException("Input length exceeds allowed character limits.");
                 }
 
                 manageRecord.create("airports", new String[]{"airport_id", "name", "country_name", "company_id"},
-                        new Object[]{airport_id, name, country_name, company_id});
+                        new Object[]{nextAirportId, name, country_name, company_id});
                 JOptionPane.showMessageDialog(dialog, "Record successfully created!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 dialog.dispose();
             } catch (IllegalArgumentException ex) {
                 JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             } catch (SQLException ex) {
                 if (ex.getMessage().contains("Duplicate entry")) {
-                    JOptionPane.showMessageDialog(dialog, "Airports ID already exists. Please use a unique ID.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialog, "Airports ID already exists. Please refresh and try again.", "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(dialog, "Error creating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -183,9 +184,24 @@ public class AirportManagementFrame extends JFrame {
         buttonPanel.add(createButton);
         buttonPanel.add(cancelButton);
 
+        // Add panels to the dialog
         dialog.add(inputPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
+    }
+
+
+    private int getNextAirportIdFromDatabase() {
+        String query = "SELECT MAX(airport_id) AS max_id FROM airports";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                return rs.getInt("max_id") + 1;
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error fetching next Airport ID: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return 1; // Default to 1 if the table is empty or an error occurs
     }
 
     // Helper method to populate the company dropdown
@@ -201,6 +217,33 @@ public class AirportManagementFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Error fetching companies: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    private void populateAirportDropdown(Connection connection, JComboBox<String> airportDropdown) {
+        String query = "SELECT a.airport_id, a.name, a.country_name, a.company_id " +
+                "FROM airports a";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            // Clear existing items in the dropdown
+            airportDropdown.removeAllItems();
+
+            // Populate the dropdown with the fetched results
+            while (rs.next()) {
+                String airportId = rs.getString("airport_id"); // Airport ID
+                String airportName = rs.getString("name"); // Airport name
+                String countryName = rs.getString("country_name"); // Country name
+                int companyId = rs.getInt("company_id"); // Company ID
+
+                // Add formatted string to dropdown
+                airportDropdown.addItem(String.format("%s - %s (%s) [Company ID: %d]",
+                        airportId, airportName, countryName, companyId));
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null, "Error fetching airports: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     private void showReadRecordDialog() {
         JDialog dialog = new JDialog(this, "Read Airports Records", true);
@@ -236,7 +279,6 @@ public class AirportManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.CENTER);
         dialog.setVisible(true);
     }
-
 
     private void showFilterDialog() {
         // Create dialog with smaller size
@@ -569,5 +611,109 @@ public class AirportManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
+
+    private void showUpdateDialog() {
+        JDialog dialog = new JDialog(this, "Update Airport Record", true);
+        dialog.setSize(500, 350);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel airportLabel = new JLabel("Select Airport:");
+        JComboBox<String> airportDropdown = new JComboBox<>();
+        populateAirportDropdown(connection, airportDropdown);
+        JLabel nameLabel = new JLabel("Create New Airport Name:");
+        JTextField nameField = new JTextField();
+
+        JLabel companyLabel = new JLabel("Select New Airport Company:");
+        JComboBox<String> companyDropdown = new JComboBox<>();
+        populateCompanyDropdown(companyDropdown);
+
+        // Add components to the input panel
+        inputPanel.add(airportLabel);
+        inputPanel.add(airportDropdown);
+        inputPanel.add(nameLabel);
+        inputPanel.add(nameField);
+        inputPanel.add(companyLabel);
+        inputPanel.add(companyDropdown);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton updateButton = new JButton("Update");
+        JButton cancelButton = new JButton("Cancel");
+
+        updateButton.setEnabled(false);
+
+        // Enable the update button if either field or dropdown changes
+        DocumentListener fieldListener = new DocumentListener() {
+            private void toggleUpdateButton() {
+                boolean isNameFieldNotEmpty = !nameField.getText().trim().isEmpty();
+                boolean isCompanySelected = companyDropdown.getSelectedItem() != null;
+                updateButton.setEnabled(isNameFieldNotEmpty || isCompanySelected);
+            }
+
+            public void insertUpdate(DocumentEvent e) { toggleUpdateButton(); }
+            public void removeUpdate(DocumentEvent e) { toggleUpdateButton(); }
+            public void changedUpdate(DocumentEvent e) { toggleUpdateButton(); }
+        };
+
+        nameField.getDocument().addDocumentListener(fieldListener);
+        companyDropdown.addActionListener(e -> {
+            boolean isNameFieldNotEmpty = !nameField.getText().trim().isEmpty();
+            boolean isCompanySelected = companyDropdown.getSelectedItem() != null;
+            updateButton.setEnabled(isNameFieldNotEmpty || isCompanySelected);
+        });
+
+        updateButton.addActionListener(e -> {
+            String selectedAirport = (String) airportDropdown.getSelectedItem();
+            String newName = nameField.getText().trim();
+            String selectedCompany = (String) companyDropdown.getSelectedItem();
+
+            try {
+                if (selectedAirport == null || !selectedAirport.contains(" - ")) {
+                    throw new IllegalArgumentException("Invalid airport selected.");
+                }
+                int airportId = Integer.parseInt(selectedAirport.split(" - ")[0].trim());
+                Integer companyId = null;
+
+                if (selectedCompany != null && selectedCompany.contains(" - ")) {
+                    companyId = Integer.parseInt(selectedCompany.split(" - ")[0].trim());
+                }
+
+                // Validation for input lengths
+                if (!newName.isEmpty() && newName.length() > 25) {
+                    throw new IllegalArgumentException("New airport name exceeds 25 characters.");
+                }
+
+                // Update the record
+                String[] columns = {"name", "company_id"};
+                Object[] values = {newName.isEmpty() ? null : newName, companyId};
+                String condition = "airport_id = " + airportId;
+
+                manageRecord.update("airports", condition, columns, values);
+
+                JOptionPane.showMessageDialog(dialog, "Airport record updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog, "Error updating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(updateButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(inputPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+
+
 
 }
