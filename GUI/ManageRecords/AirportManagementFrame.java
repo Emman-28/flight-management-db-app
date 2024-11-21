@@ -65,7 +65,7 @@ public class AirportManagementFrame extends JFrame {
 
         JButton deleteButton = new JButton("Delete Airports Record");
         deleteButton.setPreferredSize(buttonSize);
-        // TODO: Add functionality for deleting records
+        deleteButton.addActionListener(e -> showDeleteRecordDialog());
 
         JButton backButton = new JButton("Back to Records Menu");
         backButton.setPreferredSize(buttonSize);
@@ -713,7 +713,95 @@ public class AirportManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
+    private void showDeleteRecordDialog() {
+        JDialog dialog = new JDialog(this, "Delete Airport Record", true);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
 
+        // Panel for the table
+        JPanel tablePanel = new JPanel(new BorderLayout());
 
+        // SQL query to fetch airport data
+        String query = "SELECT airport_id, name, country_name, company_id FROM airports";
+
+        // Fetch airport records using the readWithQuery method
+        List<Object[]> airportData;
+        try {
+            airportData = manageRecord.readWithQuery(query);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(dialog, "Error fetching airport records: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Columns for the table
+        String[] columnNames = {"Airport ID", "Name", "Country", "Company"};
+
+        // Convert List<Object[]> to a 2D array for the table data
+        Object[][] data = new Object[airportData.size()][4];
+        for (int i = 0; i < airportData.size(); i++) {
+            data[i] = airportData.get(i);
+        }
+
+        // Create the table to display airport records
+        JTable airportTable = new JTable(data, columnNames);
+        airportTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow single row selection
+        JScrollPane tableScrollPane = new JScrollPane(airportTable);
+
+        // Add the table to the tablePanel
+        tablePanel.add(tableScrollPane, BorderLayout.CENTER);
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        // Create the Delete and Cancel buttons
+        JButton deleteButton = new JButton("Delete");
+        JButton cancelButton = new JButton("Cancel");
+
+        deleteButton.setEnabled(false); // Initially disabled, will be enabled when a row is selected
+
+        // Enable delete button when a row is selected
+        airportTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && airportTable.getSelectedRow() != -1) {
+                deleteButton.setEnabled(true);
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            int selectedRow = airportTable.getSelectedRow();
+            if (selectedRow != -1) {
+                int airportId = (int) airportTable.getValueAt(selectedRow, 0);
+
+                int confirmation = JOptionPane.showConfirmDialog(dialog,
+                        "Are you sure you want to delete Airport ID: " + airportId + "?",
+                        "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    try {
+                        // Build the condition string to match the selected airport_id
+                        String condition = "airport_id = " + airportId;
+                        // Call delete method from manageRecord class with the condition
+                        manageRecord.delete("airports", condition);
+                        JOptionPane.showMessageDialog(dialog, "Airport deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        dialog.dispose();
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(dialog, "Error deleting airport: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Add buttons to buttonPanel
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(cancelButton);
+
+        // Add panels to the dialog
+        dialog.add(tablePanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+    }
 
 }
