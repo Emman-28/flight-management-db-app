@@ -23,7 +23,7 @@ public class Main {
             ExecuteTransaction transaction = new ExecuteTransaction(connection);
             GenerateReport report = new GenerateReport(connection);
 
-            MainFrame appGUI = new MainFrame(record, transaction, report);
+            new MainFrame(record, transaction, report);
             /**while(true) {
                 // displaying options
                 System.out.println("You can command the following operations:");

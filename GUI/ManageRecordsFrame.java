@@ -44,75 +44,33 @@ public class ManageRecordsFrame extends JFrame {
 
         // Create buttons with uniform size
         Dimension buttonSize = new Dimension(250, 40);
-        JButton aircraftButton = new JButton("Aircraft Record Management");
         JButton airportButton = new JButton("Airport Record Management");
-        JButton bookingButton = new JButton("Booking Record Management");
-        JButton companyButton = new JButton("Company Record Management");
         JButton flightButton = new JButton("Flight Record Management");
-        JButton flightLogButton = new JButton("Flight Log Record Management");
         JButton passengerButton = new JButton("Passenger Record Management");
-        JButton passportButton = new JButton("Passport Record Management");
-        JButton ticketButton = new JButton("Ticket Record Management");
 
         // Set uniform size for all buttons
-        aircraftButton.setPreferredSize(buttonSize);
         airportButton.setPreferredSize(buttonSize);
-        bookingButton.setPreferredSize(buttonSize);
-        companyButton.setPreferredSize(buttonSize);
         flightButton.setPreferredSize(buttonSize);
-        flightLogButton.setPreferredSize(buttonSize);
         passengerButton.setPreferredSize(buttonSize);
-        passportButton.setPreferredSize(buttonSize);
-        ticketButton.setPreferredSize(buttonSize);
 
         // Add action listeners to each button
-        aircraftButton.addActionListener(e -> {
-            dispose();
-            new AircraftManagementFrame(manageRecord, transaction, report);
-        });
         airportButton.addActionListener(e -> {
             dispose();
             new AirportManagementFrame(manageRecord, transaction, report);
-        });
-        bookingButton.addActionListener(e -> {
-            dispose();
-            new BookingManagementFrame(manageRecord, transaction, report);
-        });
-        companyButton.addActionListener(e -> {
-            dispose();
-            new CompanyManagementFrame(manageRecord, transaction, report);
         });
         flightButton.addActionListener(e -> {
             dispose();
             new FlightManagementFrame(manageRecord, transaction, report);
         });
-        flightLogButton.addActionListener(e -> {
-            dispose();
-            new FlightLogManagementFrame(manageRecord, transaction, report);
-        });
         passengerButton.addActionListener(e -> {
             dispose();
             new PassengerManagementFrame(manageRecord, transaction, report);
         });
-        passportButton.addActionListener(e -> {
-            dispose();
-            new PassportManagementFrame(manageRecord, transaction, report);
-        });
-        ticketButton.addActionListener(e -> {
-            dispose();
-            new TicketManagementFrame(manageRecord, transaction, report);
-        });
 
         // Add buttons to the panel
-        buttonPanel.add(aircraftButton);
         buttonPanel.add(airportButton);
-        buttonPanel.add(bookingButton);
-        buttonPanel.add(companyButton);
         buttonPanel.add(flightButton);
-        buttonPanel.add(flightLogButton);
         buttonPanel.add(passengerButton);
-        buttonPanel.add(passportButton);
-        buttonPanel.add(ticketButton);
 
         // Back button panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical gap
