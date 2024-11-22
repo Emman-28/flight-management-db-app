@@ -9,7 +9,7 @@ public class GenerateReport {
         this.connection = connection;
     }
 
-            public String passengerAirportTraffic(String originAirportCode, String startDate, String endDate) {
+    public String passengerAirportTraffic(String originAirportCode, String startDate, String endDate) {
         return """
             SELECT 
                 COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
@@ -68,9 +68,50 @@ public class GenerateReport {
             """;
     }
 
-    // TODO:
-    public void companyRevenue() throws SQLException {
-
+    public String companyRevenue(int year, Connection connection) throws SQLException {
+        String sql = """
+            SELECT 
+                c.name AS company_name,
+                YEAR(b.booking_date) AS year,
+                SUM(t.price) AS total_revenue
+            FROM 
+                companies c
+            JOIN 
+                airports a ON c.company_id = a.company_id
+            JOIN 
+                flights f ON f.origin_airport_id = a.airport_id
+            JOIN 
+                bookings b ON b.flight_id = f.flight_id
+            JOIN 
+                tickets t ON t.booking_id = b.booking_id
+            WHERE 
+                YEAR(b.booking_date) = ?
+            GROUP BY 
+                c.name, YEAR(b.booking_date)
+            ORDER BY 
+                total_revenue DESC;
+        """;
+    
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, year);  // Bind the year parameter
+        ResultSet resultSet = statement.executeQuery();
+        
+        StringBuilder result = new StringBuilder();
+        
+        // Append column headers
+        result.append("Company Name | Year | Total Revenue\n");
+        result.append("-----------------------------------------\n");
+    
+        // Loop through the result set and format the output
+        while (resultSet.next()) {
+            String companyName = resultSet.getString("company_name");
+            int bookingYear = resultSet.getInt("year");
+            double totalRevenue = resultSet.getDouble("total_revenue");
+    
+            result.append(String.format("%s | %d | %.2f\n", companyName, bookingYear, totalRevenue));
+        }
+        
+        return result.toString();
     }
 
     // TODO:

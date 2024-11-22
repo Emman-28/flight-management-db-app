@@ -1,5 +1,7 @@
 package GUI;
 
+import GUI.GenerateReports.CompanyRevenueFrame;
+import GUI.GenerateReports.FlightPerformanceFrame;
 import GUI.ManageRecords.*;
 import java.awt.*;
 import java.sql.*;
@@ -42,47 +44,33 @@ public class GenerateReportsFrame extends JFrame {
 
         // Create buttons with uniform size
         Dimension buttonSize = new Dimension(250, 40);
-        JButton airportButton = new JButton("Airport Record Management");
-        JButton flightButton = new JButton("Flight Record Management");
-        JButton passportButton = new JButton("Passport Record Management");
-        JButton companyButton = new JButton("Company Record Management");  // New button for Company Record Management
-        JButton aircraftButton = new JButton("Aircraft Record Management");  // New button for Aircraft Record Management
+        JButton passengerButton = new JButton("Passenger Traffic");
+        JButton companyButton = new JButton("Company Revenue");
+        JButton flightButton = new JButton("Flight Performance");
 
         // Set uniform size for all buttons
-        airportButton.setPreferredSize(buttonSize);
+        passengerButton.setPreferredSize(buttonSize);
+        companyButton.setPreferredSize(buttonSize);
         flightButton.setPreferredSize(buttonSize);
-        passportButton.setPreferredSize(buttonSize);
-        companyButton.setPreferredSize(buttonSize);  // Set size for new button
-        aircraftButton.setPreferredSize(buttonSize); // Set size for new button
 
         // Add action listeners to each button
-        airportButton.addActionListener(e -> {
-            dispose();
-            new AirportManagementFrame(connection, manageRecord, transaction, report);
-        });
-        flightButton.addActionListener(e -> {
-            dispose();
-            new FlightManagementFrame(connection, manageRecord, transaction, report);
-        });
-        passportButton.addActionListener(e -> {
+        passengerButton.addActionListener(e -> {
             dispose();
             new PassportManagementFrame(connection, manageRecord, transaction, report);
         });
         companyButton.addActionListener(e -> {
             dispose();
-            new CompanyManagementFrame(connection, manageRecord, transaction, report); // New Company Management Frame
+            new CompanyRevenueFrame(connection, manageRecord, transaction, report);
         });
-        aircraftButton.addActionListener(e -> {
+        flightButton.addActionListener(e -> {
             dispose();
-            new AircraftManagementFrame(connection, manageRecord, transaction, report); // New Aircraft Management Frame
+            new FlightPerformanceFrame(connection, manageRecord, transaction, report);
         });
 
         // Add buttons to the panel
-        buttonPanel.add(airportButton);
+        buttonPanel.add(passengerButton);
+        buttonPanel.add(companyButton);
         buttonPanel.add(flightButton);
-        buttonPanel.add(passportButton);
-        buttonPanel.add(companyButton);  // Add new button to panel
-        buttonPanel.add(aircraftButton); // Add new button to panel
 
         // Back button panel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical gap

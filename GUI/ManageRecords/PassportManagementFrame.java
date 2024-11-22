@@ -1001,7 +1001,7 @@ public class PassportManagementFrame extends JFrame {
             String selectedPassport = (String) passportDropdown.getSelectedItem();
             String firstName = firstNameField.getText().trim();
             String lastName = lastNameField.getText().trim();
-            String nationality = middleNameField.getText().trim();
+            String middleName = middleNameField.getText().trim();
             String placeOfIssue = placeOfIssueField.getText().trim();
     
             try {
@@ -1011,7 +1011,7 @@ public class PassportManagementFrame extends JFrame {
                 int passportId = Integer.parseInt(selectedPassport.split(" - ")[0].trim());
     
                 // Validation for input lengths
-                if (firstName.length() > 25 || lastName.length() > 25 || nationality.length() > 25 || placeOfIssue.length() > 25) {
+                if (firstName.length() > 25 || lastName.length() > 25 || middleName.length() > 25 || placeOfIssue.length() > 25) {
                     throw new IllegalArgumentException("Input exceeds character limit of 25.");
                 }
     
