@@ -16,6 +16,8 @@ public class MainFrame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 400);
         frame.setLocationRelativeTo(null); // Center the window
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        frame.setUndecorated(false); // Set to true if you want no window borders
 
         // Custom JPanel to render the background
         JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
