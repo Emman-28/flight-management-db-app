@@ -69,7 +69,7 @@ public class GenerateReportsFrame {
         JButton passengerButton = new JButton("Passenger Traffic");
         JButton companyButton = new JButton("Company Revenue");
         JButton flightButton = new JButton("Flight Performance");
-        JButton exitSystemButton = new JButton("Back");
+        JButton backButton = new JButton("Back");
 
         Dimension buttonSize = new Dimension(250, 40);
 
@@ -85,9 +85,9 @@ public class GenerateReportsFrame {
         flightButton.setMaximumSize(buttonSize);
         flightButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        exitSystemButton.setPreferredSize(buttonSize);
-        exitSystemButton.setMaximumSize(buttonSize);
-        exitSystemButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backButton.setPreferredSize(buttonSize);
+        backButton.setMaximumSize(buttonSize);
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         contentPanel.add(passengerButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add spacing between buttons
@@ -95,7 +95,7 @@ public class GenerateReportsFrame {
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(flightButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(exitSystemButton);
+        contentPanel.add(backButton);
 
         // Add action listeners
         passengerButton.addActionListener(e -> {
@@ -113,17 +113,11 @@ public class GenerateReportsFrame {
             new FlightPerformanceFrame(connection, record, transaction, report);
         });
 
-        exitSystemButton.addActionListener(e -> {
-            try {
-                if (connection != null && !connection.isClosed()) {
-                    connection.close();
-                    System.out.println("Connection closed successfully.");
-                }
-            } catch (SQLException ex) {
-                System.err.println("Failed to close the connection: " + ex.getMessage());
-            }
-            System.exit(0);
+        backButton.addActionListener(e -> {
+            frame.dispose();
+            new MainFrame(connection, record, transaction, report);
         });
+
 
         // Add content panel to the center of the background
         gbc.gridx = 0;
