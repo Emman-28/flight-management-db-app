@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class MainFrame {
-
     public MainFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
         // Main frame setup
         JFrame frame = new JFrame("Flight Database Management System");
@@ -19,13 +18,14 @@ public class MainFrame {
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
         frame.setUndecorated(false); // Set to true if you want no window borders
 
-        // Custom JPanel to render the background
+        
+        // setting background
         JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;
 
             {
                 try {
-                    backgroundImage = ImageIO.read(new File("db bg.png")); // Replace with your image path
+                    backgroundImage = ImageIO.read(new File("db bg.png"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -35,7 +35,6 @@ public class MainFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 if (backgroundImage != null) {
-                    // Scale the image to fit the panel size
                     g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
                 }
             }

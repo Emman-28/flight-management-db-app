@@ -2,94 +2,139 @@ package GUI;
 
 import GUI.GenerateReports.CompanyRevenueFrame;
 import GUI.GenerateReports.FlightPerformanceFrame;
-import GUI.ManageRecords.*;
-import java.awt.*;
-import java.sql.*;
-import javax.swing.*;
+import GUI.GenerateReports.PassengerTrafficFrame;
 import operations.*;
+import java.sql.*;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 
-public class GenerateReportsFrame extends JFrame {
+public class GenerateReportsFrame {
+    public GenerateReportsFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
+        // Main frame setup
+        JFrame frame = new JFrame("Generate Reports");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 400);
+        frame.setLocationRelativeTo(null); // Center the window
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        frame.setUndecorated(false); // Set to true if you want no window borders
 
-    public GenerateReportsFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
-        setTitle("Generate Reports");
-        setSize(500, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // setting background
+        JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
+            private Image backgroundImage;
 
-        // Main panel with BorderLayout
-        JPanel mainPanel = new JPanel(new BorderLayout(5, 5)); // Reduced gaps
-        mainPanel.setBackground(Color.WHITE);
+            {
+                try {
+                    backgroundImage = ImageIO.read(new File("db bg.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        // Instruction panel with vertical spacing
-        JPanel instructionPanel = new JPanel();
-        instructionPanel.setLayout(new BoxLayout(instructionPanel, BoxLayout.Y_AXIS));
-        instructionPanel.setBackground(Color.WHITE);
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
 
-        // Add space above the selection message
-        instructionPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Adds space after the title
+        backgroundPanel.setLayout(new GridBagLayout()); // GridBagLayout centers content by default
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10); // Spacing around components
 
-        // Instruction label
-        JLabel instructionLabel = new JLabel("Select which report to generate:", SwingConstants.CENTER);
-        instructionLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        instructionLabel.setForeground(Color.BLACK);
-        instructionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        instructionPanel.add(instructionLabel);
+        // Panel to hold the content
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false); // Transparent for background visibility
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
-        // Add space after the instruction message
-        instructionPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        // Title section
+        JLabel titleLabel = new JLabel("Generate Reports", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
-        // Button panel with FlowLayout
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical spacing
-        buttonPanel.setBackground(Color.WHITE);
+        JLabel welcomeLabel = new JLabel("Which report would you like to generate?", SwingConstants.CENTER);
+        welcomeLabel.setFont(new Font("Arial", Font.PLAIN,14));
+        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(welcomeLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
-        // Create buttons with uniform size
-        Dimension buttonSize = new Dimension(250, 40);
+        // Options section (Buttons)
         JButton passengerButton = new JButton("Passenger Traffic");
         JButton companyButton = new JButton("Company Revenue");
         JButton flightButton = new JButton("Flight Performance");
+        JButton exitSystemButton = new JButton("Back");
 
-        // Set uniform size for all buttons
+        Dimension buttonSize = new Dimension(250, 40);
+
         passengerButton.setPreferredSize(buttonSize);
+        passengerButton.setMaximumSize(buttonSize);
+        passengerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         companyButton.setPreferredSize(buttonSize);
+        companyButton.setMaximumSize(buttonSize);
+        companyButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         flightButton.setPreferredSize(buttonSize);
+        flightButton.setMaximumSize(buttonSize);
+        flightButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add action listeners to each button
+        exitSystemButton.setPreferredSize(buttonSize);
+        exitSystemButton.setMaximumSize(buttonSize);
+        exitSystemButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        contentPanel.add(passengerButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add spacing between buttons
+        contentPanel.add(companyButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(flightButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(exitSystemButton);
+
+        // Add action listeners
         passengerButton.addActionListener(e -> {
-            dispose();
-            new PassportManagementFrame(connection, manageRecord, transaction, report);
+            frame.dispose();
+            new PassengerTrafficFrame(connection, record, transaction, report); // Pass all necessary parameters
         });
+
         companyButton.addActionListener(e -> {
-            dispose();
-            new CompanyRevenueFrame(connection, manageRecord, transaction, report);
+            frame.dispose();
+            new CompanyRevenueFrame(connection, record, transaction, report);
         });
+
         flightButton.addActionListener(e -> {
-            dispose();
-            new FlightPerformanceFrame(connection, manageRecord, transaction, report);
+            frame.dispose();
+            new FlightPerformanceFrame(connection, record, transaction, report);
         });
 
-        // Add buttons to the panel
-        buttonPanel.add(passengerButton);
-        buttonPanel.add(companyButton);
-        buttonPanel.add(flightButton);
-
-        // Back button panel
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5)); // Reduced vertical gap
-        bottomPanel.setBackground(Color.WHITE);
-        JButton backButton = new JButton("Back to Main Menu");
-        backButton.setPreferredSize(new Dimension(150, 30));
-        backButton.addActionListener(e -> {
-            dispose();
-            new MainFrame(connection, manageRecord, transaction, report); // Reopen MainFrame
+        exitSystemButton.addActionListener(e -> {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    connection.close();
+                    System.out.println("Connection closed successfully.");
+                }
+            } catch (SQLException ex) {
+                System.err.println("Failed to close the connection: " + ex.getMessage());
+            }
+            System.exit(0);
         });
-        bottomPanel.add(backButton);
 
-        // Add components to the main panel
-        mainPanel.add(instructionPanel, BorderLayout.NORTH);
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        // Add content panel to the center of the background
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.CENTER; // Center in both X and Y axes
+        backgroundPanel.add(contentPanel, gbc);
 
-        // Set up the frame
-        add(mainPanel);
-        setVisible(true);
+        // Add background to the frame
+        frame.setContentPane(backgroundPanel);
+        frame.setVisible(true);
     }
 }

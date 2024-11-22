@@ -3,7 +3,11 @@ package GUI.GenerateReports;
 import GUI.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import operations.*;
 
@@ -19,75 +23,123 @@ public class CompanyRevenueFrame extends JFrame {
         this.transaction = transaction;
         this.report = report;
 
+        // frame settings
         setTitle("Company Revenue Report Generator");
-        setSize(400, 400);
-        setLocationRelativeTo(null);
+        setSize(500, 500);
+        setLocationRelativeTo(null); // centers window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setIconImage(new ImageIcon("logo.jpg").getImage());
 
-        // Main panel with BorderLayout
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(Color.WHITE);
+        JPanel mainPanel = new JPanel(new GridBagLayout()) {
+            private Image backgroundImage;
 
-        // Panel for the selection message with spacing
-        JPanel selectionPanel = new JPanel();
-        selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.Y_AXIS));
-        selectionPanel.setBackground(Color.WHITE);
+            {
+                try {
+                    backgroundImage = ImageIO.read(new File("db bg.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        // Add the message asking for year selection
-        JLabel yearLabel = new JLabel("Select a Year:");
-        yearLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+
+        mainPanel.setOpaque(false); // Make main panel transparent
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+
+        JPanel selectionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        selectionPanel.setOpaque(false); // Make selection panel transparent
+        JLabel promptLabel = new JLabel("Generating Company Revenue Report...");
+        promptLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        JLabel yearLabel = new JLabel("Year:");
         yearLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 
         selectionPanel.add(yearLabel);
 
-        // Dropdown (JComboBox) for selecting the year
+        // populating dropdown for year selection
         JComboBox<Integer> yearComboBox = new JComboBox<>();
-        // Add some years to the dropdown (can be dynamically generated from the database or hardcoded)
-        for (int i = 2020; i <= 2025; i++) {
-            yearComboBox.addItem(i);
+        try (Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT DISTINCT YEAR(booking_date) FROM bookings ORDER BY YEAR(booking_date) DESC")) {
+                while (rs.next()) {
+                yearComboBox.addItem(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error loading years from database.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        yearComboBox.setSelectedIndex(0);  // Set default year (e.g., 2020)
-        yearComboBox.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        yearComboBox.setSelectedIndex(0);
         selectionPanel.add(yearComboBox);
-        selectionPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        mainPanel.add(selectionPanel, BorderLayout.NORTH);
+        gbc.gridy = 1;
+        mainPanel.add(promptLabel, gbc);
 
-        // Button panel with FlowLayout
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-        Dimension buttonSize = new Dimension(200, 35);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false); // Make button panel transparent
+        buttonPanel.setLayout(new GridBagLayout());
+        Dimension buttonSize = new Dimension(100, 30);
 
-        // Button to generate the report based on selected year
-        JButton generateReportButton = new JButton("Generate Report");
+        GridBagConstraints gbcbtn = new GridBagConstraints();
+        gbcbtn.insets = new Insets(0, 0, 10, 0);
+        gbcbtn.gridx = 0;
+        gbcbtn.gridy = 0;
+        gbcbtn.anchor = GridBagConstraints.CENTER;
+
+        JButton generateReportButton = new JButton("Generate");
         generateReportButton.setPreferredSize(buttonSize);
         generateReportButton.addActionListener(e -> {
-            // Get the selected year from the combo box
             int selectedYear = (int) yearComboBox.getSelectedItem();
             try {
-                // Call the method to get the company revenue for the selected year
-                String reportData = report.companyRevenue(selectedYear, connection);
-                // Display the report (for now, just show it in a message dialog)
-                JOptionPane.showMessageDialog(this, reportData, "Company Revenue Report", JOptionPane.INFORMATION_MESSAGE);
+                Object[][] reportData = report.companyRevenue(selectedYear, connection);
+            
+                if (reportData == null || reportData.length == 0) {
+                    JOptionPane.showMessageDialog(this, "No data available for the selected year.", "No Data", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+            
+                String[] columnNames = {"Year", "Company Name", "Revenue"};  // Updated column names
+            
+                JTable resultTable = new JTable(reportData, columnNames);
+                resultTable.setFillsViewportHeight(true);  // Make the table fill the viewport
+                JScrollPane scrollPane = new JScrollPane(resultTable);
+            
+                JOptionPane.showMessageDialog(this, scrollPane, "Company Revenue Report", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Error fetching the report: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        buttonPanel.add(generateReportButton);
-
-        // Button to go back to the records menu
-        JButton backButton = new JButton("Back to Records Menu");
+        JButton backButton = new JButton("Back");
         backButton.setPreferredSize(buttonSize);
         backButton.addActionListener(e -> {
             dispose();
-            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Pass all three parameters back
+            new GenerateReportsFrame(connection, manageRecord, transaction, report);
         });
 
-        buttonPanel.add(backButton);
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+        gbcbtn.gridy = 0;
+        buttonPanel.add(generateReportButton, gbcbtn);
+
+        gbcbtn.gridy = 1;
+        buttonPanel.add(backButton, gbcbtn);
+
+        gbc.gridy = 2;
+        mainPanel.add(selectionPanel, gbc);
+
+        gbc.gridy = 3;
+        mainPanel.add(buttonPanel, gbc);
 
         add(mainPanel);
         setVisible(true);

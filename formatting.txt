@@ -1,0 +1,65 @@
+ENTER AND BACK BUTTON ==============================================================================
+
+JPanel buttonPanel = new JPanel();
+buttonPanel.setBackground(Color.WHITE);
+buttonPanel.setLayout(new GridBagLayout());
+Dimension buttonSize = new Dimension(100, 30);
+
+GridBagConstraints gbcbtn = new GridBagConstraints();
+gbcbtn.insets = new Insets(0, 0, 10, 0);
+gbcbtn.gridx = 0;
+gbcbtn.gridy = 0;
+gbcbtn.anchor = GridBagConstraints.CENTER;
+
+JButton generateReportButton = new JButton("Generate");
+generateReportButton.setPreferredSize(buttonSize);
+generateReportButton.addActionListener(e -> {
+    
+    try {
+        
+    } catch (SQLException ex) {
+
+    }
+});
+
+JButton backButton = new JButton("Back");
+backButton.setPreferredSize(buttonSize);
+backButton.addActionListener(e -> {
+    dispose();
+    new ManageRecordsFrame(connection, manageRecord, transaction, report);
+});
+
+gbcbtn.gridy = 0;
+buttonPanel.add(generateReportButton, gbcbtn);
+
+gbcbtn.gridy = 1;
+buttonPanel.add(backButton, gbcbtn);
+
+BACKGROUND SETTING ==============================================================================
+
+setTitle("Company Revenue Report Generator");
+setSize(500, 500);
+setLocationRelativeTo(null); // centers window
+setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
+setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+setIconImage(new ImageIcon("logo.jpg").getImage());
+
+JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
+    private Image backgroundImage;
+
+    {
+        try {
+            backgroundImage = ImageIO.read(new File("db bg.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        if (backgroundImage != null) {
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+        }
+    }
+};

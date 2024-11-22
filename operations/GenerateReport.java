@@ -10,6 +10,7 @@ public class GenerateReport {
     }
 
     public String passengerAirportTraffic(String originAirportCode, String startDate, String endDate) {
+        /*
         return """
             SELECT 
                 COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
@@ -26,9 +27,13 @@ public class GenerateReport {
               AND bookings.booking_status != 'Refunded'
               AND flights.flight_status != 'Cancelled'
             """;
+        */
+
+        return "";
     }
 
     public String passengerDestinationTraffic(String destinationAirportCode, String startDate, String endDate) {
+        /*
         return """
             SELECT 
                 COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
@@ -45,9 +50,12 @@ public class GenerateReport {
               AND bookings.booking_status != 'Refunded'
               AND flights.flight_status != 'Cancelled'
             """;
+            */
+            return "";
     }
 
     public String passengerCompanyTraffic(String companyName, String startDate, String endDate) {
+        /*
         return """
             SELECT 
                 COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
@@ -65,14 +73,16 @@ public class GenerateReport {
               AND bookings.booking_date BETWEEN '""" + startDate + """' AND '""" + endDate + """'
               AND bookings.booking_status != 'Refunded'
               AND flights.flight_status != 'Cancelled'
-            """;
+            """;*/
+
+            return "";
     }
 
-    public String companyRevenue(int year, Connection connection) throws SQLException {
-        String sql = """
+    public Object[][] companyRevenue(int selectedYear, Connection connection) throws SQLException {
+        String query = """
             SELECT 
-                c.name AS company_name,
                 YEAR(b.booking_date) AS year,
+                c.name AS company_name,
                 SUM(t.price) AS total_revenue
             FROM 
                 companies c
@@ -85,35 +95,37 @@ public class GenerateReport {
             JOIN 
                 tickets t ON t.booking_id = b.booking_id
             WHERE 
-                YEAR(b.booking_date) = ?
+                YEAR(b.booking_date) = ? 
             GROUP BY 
                 c.name, YEAR(b.booking_date)
             ORDER BY 
                 total_revenue DESC;
         """;
-    
-        PreparedStatement statement = connection.prepareStatement(sql);
-        statement.setInt(1, year);  // Bind the year parameter
-        ResultSet resultSet = statement.executeQuery();
         
-        StringBuilder result = new StringBuilder();
-        
-        // Append column headers
-        result.append("Company Name | Year | Total Revenue\n");
-        result.append("-----------------------------------------\n");
-    
-        // Loop through the result set and format the output
-        while (resultSet.next()) {
-            String companyName = resultSet.getString("company_name");
-            int bookingYear = resultSet.getInt("year");
-            double totalRevenue = resultSet.getDouble("total_revenue");
-    
-            result.append(String.format("%s | %d | %.2f\n", companyName, bookingYear, totalRevenue));
+        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            stmt.setInt(1, selectedYear);  // Set selected year
+            ResultSet rs = stmt.executeQuery();
+            
+            // Count rows for the result set
+            rs.last();  // Now allowed because the result set is scrollable
+            int rowCount = rs.getRow();
+            rs.beforeFirst();  // Reset to the first row
+            
+            // Prepare data array with rows and columns (only 3 columns: Year, Company Name, Revenue)
+            Object[][] data = new Object[rowCount][3]; 
+            
+            int rowIndex = 0;
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getString("year");  // Year as String
+                data[rowIndex][1] = rs.getString("company_name");  // Company Name as String
+                data[rowIndex][2] = rs.getDouble("total_revenue");  // Total Revenue as Double
+                rowIndex++;
+            }
+            
+            return data;
         }
-        
-        return result.toString();
     }
-
+    
     // TODO:
     public void flightPerformance() throws SQLException {
 
