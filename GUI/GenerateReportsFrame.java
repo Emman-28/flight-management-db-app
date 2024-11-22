@@ -20,6 +20,7 @@ public class GenerateReportsFrame {
         frame.setLocationRelativeTo(null); // Center the window
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
         frame.setUndecorated(false); // Set to true if you want no window borders
+        frame.setIconImage(new ImageIcon("logo.png").getImage());
 
         // setting background
         JPanel backgroundPanel = new JPanel(new GridBagLayout()) {

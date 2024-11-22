@@ -29,7 +29,7 @@ public class BookFlightFrame extends JFrame {
         setLocationRelativeTo(null); // centers window
         setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("logo.jpg").getImage());
+        setIconImage(new ImageIcon("logo.png").getImage());
 
         JPanel mainPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;

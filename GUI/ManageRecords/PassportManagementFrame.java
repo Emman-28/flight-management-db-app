@@ -34,6 +34,7 @@ public class PassportManagementFrame extends JFrame {
         frame.setLocationRelativeTo(null); // Center the window
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
         frame.setUndecorated(false); // Set to true if you want no window borders
+        frame.setIconImage(new ImageIcon("logo.png").getImage());
         
         // Setting background
         JPanel backgroundPanel = new JPanel(new GridBagLayout()) {

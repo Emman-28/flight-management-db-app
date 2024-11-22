@@ -23,14 +23,15 @@ public class RescheduleBookingFrame extends JFrame {
         this.transaction = transaction;
         this.report = report;
 
-        // frame settings
-        setTitle("Company Revenue Report Generator");
+        // Frame settings
+        setTitle("Flight Booking Rescheduling");
         setSize(500, 500);
-        setLocationRelativeTo(null); // centers window
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
+        setLocationRelativeTo(null); // Centers window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("logo.jpg").getImage());
+        setIconImage(new ImageIcon("logo.png").getImage());
 
+        // Main panel with background image
         JPanel mainPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;
 
@@ -51,8 +52,7 @@ public class RescheduleBookingFrame extends JFrame {
             }
         };
 
-        mainPanel.setOpaque(false); // Make main panel transparent
-        
+        mainPanel.setOpaque(false); 
 
 
 

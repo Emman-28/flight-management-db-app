@@ -26,5 +26,6 @@ public class FlightPerformanceFrame extends JFrame {
         setSize(400, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setIconImage(new ImageIcon("logo.png").getImage());
     }
 }

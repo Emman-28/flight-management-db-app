@@ -29,7 +29,7 @@ public class CompanyRevenueFrame extends JFrame {
         setLocationRelativeTo(null); // centers window
         setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("logo.jpg").getImage());
+        setIconImage(new ImageIcon("logo.png").getImage());
 
         JPanel mainPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;
@@ -61,8 +61,8 @@ public class CompanyRevenueFrame extends JFrame {
 
         JPanel selectionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         selectionPanel.setOpaque(false); // Make selection panel transparent
-        JLabel promptLabel = new JLabel("Generating Company Revenue Report...");
-        promptLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        JLabel promptLabel = new JLabel("Company Revenue Report");
+        promptLabel.setFont(new Font("Arial", Font.BOLD, 40));
         JLabel yearLabel = new JLabel("Year:");
         yearLabel.setFont(new Font("Arial", Font.PLAIN, 14));
 

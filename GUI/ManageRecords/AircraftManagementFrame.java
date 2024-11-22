@@ -26,6 +26,7 @@ public class AircraftManagementFrame extends JFrame {
         setSize(400, 400);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setIconImage(new ImageIcon("logo.png").getImage());
 
         // Main panel with BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));

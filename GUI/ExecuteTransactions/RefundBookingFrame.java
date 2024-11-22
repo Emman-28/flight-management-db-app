@@ -2,11 +2,9 @@ package GUI.ExecuteTransactions;
 
 import GUI.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import operations.*;
@@ -23,14 +21,15 @@ public class RefundBookingFrame extends JFrame {
         this.transaction = transaction;
         this.report = report;
 
-        // frame settings
-        setTitle("Company Revenue Report Generator");
+        // Frame settings
+        setTitle("Flight Booking Refunding");
         setSize(500, 500);
-        setLocationRelativeTo(null); // centers window
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
+        setLocationRelativeTo(null); // Centers window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("logo.jpg").getImage());
+        setIconImage(new ImageIcon("logo.png").getImage());
 
+        // Main panel with background image
         JPanel mainPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;
 
@@ -51,9 +50,7 @@ public class RefundBookingFrame extends JFrame {
             }
         };
 
-        mainPanel.setOpaque(false); // Make main panel transparent
-
-        
+        mainPanel.setOpaque(false); 
 
 
 
