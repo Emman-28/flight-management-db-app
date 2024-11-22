@@ -1,6 +1,7 @@
 package operations;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 
 public class ExecuteTransaction {
     private Connection connection;
@@ -66,7 +67,7 @@ public class ExecuteTransaction {
             }
         }
 
-        flightLogManager.addFlightLog(newLogId, flightId, logDate.toString(), eventTypeId);
+        // flightLogManager.addFlightLog(newLogId, flightId, logDate.toString(), eventTypeId);
         
         // placeholder for success message
         // System.out.println("Flight log added with log ID: " + newLogId);

@@ -67,7 +67,7 @@ public class MainFrame {
         JButton manageRecordsButton = new JButton("Manage Records");
         JButton executeTransactionsButton = new JButton("Execute Transactions");
         JButton generateReportsButton = new JButton("Generate Reports");
-        JButton exitSystemButton = new JButton("Exit System");
+        JButton exitSystemButton = new JButton("Exit");
 
         Dimension buttonSize = new Dimension(250, 40);
 
@@ -83,8 +83,8 @@ public class MainFrame {
         generateReportsButton.setMaximumSize(buttonSize);
         generateReportsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        exitSystemButton.setPreferredSize(buttonSize);
-        exitSystemButton.setMaximumSize(buttonSize);
+        exitSystemButton.setPreferredSize(new Dimension(75, 30));
+        exitSystemButton.setMaximumSize(new Dimension(75, 30));
         exitSystemButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         contentPanel.add(manageRecordsButton);

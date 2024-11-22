@@ -85,8 +85,8 @@ public class GenerateReportsFrame {
         flightButton.setMaximumSize(buttonSize);
         flightButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        backButton.setPreferredSize(buttonSize);
-        backButton.setMaximumSize(buttonSize);
+        backButton.setPreferredSize(new Dimension(75, 30));
+        backButton.setMaximumSize(new Dimension(75, 30));
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         contentPanel.add(passengerButton);

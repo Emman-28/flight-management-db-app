@@ -3,10 +3,14 @@ package GUI.ManageRecords;
 import GUI.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -24,63 +28,115 @@ public class PassportManagementFrame extends JFrame {
         this.transaction = transaction;
         this.report = report;
 
-        setTitle("Passport Record Management");
-        setSize(400, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(Color.WHITE);
-
-        JPanel selectionPanel = new JPanel();
-        selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.Y_AXIS));
-        selectionPanel.setBackground(Color.WHITE);
-
-        selectionPanel.add(Box.createRigidArea(new Dimension(0, 20))); 
+        JFrame frame = new JFrame("Passport Record Management");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 400);
+        frame.setLocationRelativeTo(null); // Center the window
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        frame.setUndecorated(false); // Set to true if you want no window borders
+        
+        // Setting background
+        JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
+            private Image backgroundImage;
+        
+            {
+                try {
+                    backgroundImage = ImageIO.read(new File("db bg.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+        
+        backgroundPanel.setLayout(new GridBagLayout()); // GridBagLayout centers content by default
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10); // Spacing around components
+        
+        // Panel to hold the content
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false); // Transparent for background visibility
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        
+        // Title section
+        JLabel titleLabel = new JLabel("Passport Record Management", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
+        
         JLabel selectionMessage = new JLabel("Select an action for the passport records:", SwingConstants.CENTER);
-        selectionMessage.setFont(new Font("Arial", Font.BOLD, 16));
-        selectionMessage.setForeground(Color.BLACK);
+        selectionMessage.setFont(new Font("Arial", Font.PLAIN, 14));
         selectionMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
-        selectionPanel.add(selectionMessage);
-        selectionPanel.add(Box.createRigidArea(new Dimension(0, 15))); 
-        mainPanel.add(selectionPanel, BorderLayout.NORTH);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-        Dimension buttonSize = new Dimension(200, 35);
-
+        contentPanel.add(selectionMessage);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Add space between elements
+        
+        // Options section (Buttons)
         JButton createButton = new JButton("Create Passport Record");
-        createButton.setPreferredSize(buttonSize);
-        createButton.addActionListener(e -> showCreateRecordDialog());
-
         JButton updateButton = new JButton("Update Passport Record");
-        updateButton.setPreferredSize(buttonSize);
-        updateButton.addActionListener(e -> showUpdatePassportDialog());
-
         JButton readButton = new JButton("Read Passport Record");
-        readButton.setPreferredSize(buttonSize);
-        readButton.addActionListener(e -> showReadRecordDialog());
-
         JButton deleteButton = new JButton("Delete Passport Record");
+        JButton backButton = new JButton("Back");
+        
+        Dimension buttonSize = new Dimension(250, 40);
+        
+        createButton.setPreferredSize(buttonSize);
+        createButton.setMaximumSize(buttonSize);
+        createButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        createButton.addActionListener(e -> showCreateRecordDialog());
+        
+        updateButton.setPreferredSize(buttonSize);
+        updateButton.setMaximumSize(buttonSize);
+        updateButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        updateButton.addActionListener(e -> showUpdatePassportDialog());
+        
+        readButton.setPreferredSize(buttonSize);
+        readButton.setMaximumSize(buttonSize);
+        readButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        readButton.addActionListener(e -> showReadRecordDialog());
+        
         deleteButton.setPreferredSize(buttonSize);
+        deleteButton.setMaximumSize(buttonSize);
+        deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         deleteButton.addActionListener(e -> showDeletePassportDialog());
         
-        JButton backButton = new JButton("Back to Records Menu");
-        backButton.setPreferredSize(buttonSize);
+        backButton.setPreferredSize(new Dimension(75, 30));
+        backButton.setMaximumSize(new Dimension(75, 30));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.addActionListener(e -> {
-            dispose();
-            new ManageRecordsFrame(connection, manageRecord, transaction, report);
+            frame.dispose();
+            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Back to Records Menu
         });
-
-        buttonPanel.add(createButton);
-        buttonPanel.add(updateButton);
-        buttonPanel.add(readButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(backButton);
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
-
-        add(mainPanel);
-        setVisible(true);
+        
+        contentPanel.add(createButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add spacing between buttons
+        contentPanel.add(updateButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(readButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(deleteButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(backButton);
+        
+        // Add content panel to the center of the background
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.CENTER; // Center in both X and Y axes
+        backgroundPanel.add(contentPanel, gbc);
+        
+        // Add background to the frame
+        frame.setContentPane(backgroundPanel);
+        frame.setVisible(true);
     }
 
     private void showCreateRecordDialog() {
@@ -502,7 +558,7 @@ public class PassportManagementFrame extends JFrame {
 
         filterButton.setPreferredSize(new Dimension(200, 35));
         inputButton.setPreferredSize(new Dimension(200, 35));
-        cancelButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(75, 30));
 
         filterButton.addActionListener(e -> {
             dialog.dispose();
@@ -859,18 +915,6 @@ public class PassportManagementFrame extends JFrame {
                     whereClause.append("birthdate = '").append(birthdate).append("' AND ");
                 }
 
-                // Parse Issue Date
-                String issueDate = yearComboBoxIssue.getSelectedItem() + "-" + monthComboBoxIssue.getSelectedItem() + "-" + dayComboBoxIssue.getSelectedItem();
-                if (yearComboBoxIssue.getSelectedItem() != "--" && monthComboBoxIssue.getSelectedItem() != "--" &&  dayComboBoxIssue.getSelectedItem() != "--") {
-                    whereClause.append("issue_date = '").append(issueDate).append("' AND ");
-                }
-    
-                // Parse Expiration Date
-                String expirationDate = yearComboBoxExpire.getSelectedItem() + "-" + monthComboBoxExpire.getSelectedItem() + "-" + dayComboBoxExpire.getSelectedItem();
-                if (yearComboBoxExpire.getSelectedItem() != "--" && monthComboBoxExpire.getSelectedItem() != "--" &&  dayComboBoxExpire.getSelectedItem() != "--") {
-                    whereClause.append("expiration_date = '").append(expirationDate).append("' AND ");
-                }
-    
                 // Parse Gender
                 if (genderComboBox.getSelectedItem() != "--") {
                     whereClause.append("sex = '").append(genderComboBox.getSelectedItem()).append("' AND ");
@@ -885,7 +929,19 @@ public class PassportManagementFrame extends JFrame {
                 if (!placeOfIssueField.getText().trim().isEmpty()) {
                     whereClause.append("place_of_issue = '").append(placeOfIssueField.getText().trim()).append("' AND ");
                 }
+
+                // Parse Issue Date
+                String issueDate = yearComboBoxIssue.getSelectedItem() + "-" + monthComboBoxIssue.getSelectedItem() + "-" + dayComboBoxIssue.getSelectedItem();
+                if (yearComboBoxIssue.getSelectedItem() != "--" && monthComboBoxIssue.getSelectedItem() != "--" &&  dayComboBoxIssue.getSelectedItem() != "--") {
+                    whereClause.append("issue_date = '").append(issueDate).append("' AND ");
+                }
     
+                // Parse Expiration Date
+                String expirationDate = yearComboBoxExpire.getSelectedItem() + "-" + monthComboBoxExpire.getSelectedItem() + "-" + dayComboBoxExpire.getSelectedItem();
+                if (yearComboBoxExpire.getSelectedItem() != "--" && monthComboBoxExpire.getSelectedItem() != "--" &&  dayComboBoxExpire.getSelectedItem() != "--") {
+                    whereClause.append("expiration_date = '").append(expirationDate).append("' AND ");
+                }
+
                 // Remove the last " AND " if the clause exists
                 if (whereClause.length() > 0) {
                     whereClause.setLength(whereClause.length() - 5);
@@ -894,7 +950,7 @@ public class PassportManagementFrame extends JFrame {
                 // Construct the final query
                 String query = whereClause.length() > 0 ? whereClause.toString() : null;
                 List<Object[]> results;
-                List<String> columnNames = List.of("Passport ID", "First Name", "Middle Name", "Last Name", 
+                List<String> columnNames = List.of("Passport ID", "First Name", "Middle Name", "Last Name", "Birthdate",
                                                     "Sex", "Nationality", "Place of Issue", "Issue Date", "Expiration Date");
     
                 // Handle empty query condition
@@ -917,7 +973,7 @@ public class PassportManagementFrame extends JFrame {
                 JScrollPane scrollPane = new JScrollPane(resultTable);
                 JOptionPane optionPane = new JOptionPane(scrollPane, JOptionPane.INFORMATION_MESSAGE);
                 JDialog messageDialog = optionPane.createDialog(dialog, "Query Results");
-                messageDialog.setSize(1500, 500);
+                messageDialog.setSize(1000, 500);
                 messageDialog.setVisible(true);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -935,111 +991,114 @@ public class PassportManagementFrame extends JFrame {
     }    
 
     private void showUpdatePassportDialog() {
-        JDialog dialog = new JDialog(this, "Update Passport Record", true);
-        dialog.setSize(500, 350);
-        dialog.setLayout(new BorderLayout());
-        dialog.setLocationRelativeTo(this);
-    
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(6, 2, 10, 10));
-        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    
-        JLabel passportLabel = new JLabel("Select Passport:");
-        JComboBox<String> passportDropdown = new JComboBox<>();
-        populatePassportDropdown(connection, passportDropdown); // Populate with passport records
-        JLabel firstNameLabel = new JLabel("First Name:");
-        JTextField firstNameField = new JTextField();
+    JDialog dialog = new JDialog(this, "Update Passport Record", true);
+    dialog.setSize(500, 350);
+    dialog.setLayout(new BorderLayout());
+    dialog.setLocationRelativeTo(this);
 
-        JLabel middleNameLabel = new JLabel("Middle Name:");
-        JTextField middleNameField = new JTextField();
-    
-        JLabel lastNameLabel = new JLabel("Last Name:");
-        JTextField lastNameField = new JTextField();
-    
-        JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
-        JTextField placeOfIssueField = new JTextField();
-    
-        // Add components to the input panel
-        inputPanel.add(passportLabel);
-        inputPanel.add(passportDropdown);
-        inputPanel.add(firstNameLabel);
-        inputPanel.add(firstNameField);
-        inputPanel.add(lastNameLabel);
-        inputPanel.add(lastNameField);
-        inputPanel.add(middleNameLabel);
-        inputPanel.add(middleNameField);
-        inputPanel.add(placeOfIssueLabel);
-        inputPanel.add(placeOfIssueField);
-    
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton updateButton = new JButton("Update");
-        JButton cancelButton = new JButton("Cancel");
-    
-        updateButton.setEnabled(false);
-    
-        // Enable the update button if any field changes
-        DocumentListener fieldListener = new DocumentListener() {
-            private void toggleUpdateButton() {
-                boolean isFirstNameNotEmpty = !firstNameField.getText().trim().isEmpty();
-                boolean isLastNameNotEmpty = !lastNameField.getText().trim().isEmpty();
-                boolean isNationalityNotEmpty = !middleNameField.getText().trim().isEmpty();
-                boolean isPlaceOfIssueNotEmpty = !placeOfIssueField.getText().trim().isEmpty();
-                updateButton.setEnabled(isFirstNameNotEmpty || isLastNameNotEmpty || isNationalityNotEmpty || isPlaceOfIssueNotEmpty);
+    JPanel inputPanel = new JPanel();
+    inputPanel.setLayout(new GridLayout(6, 2, 10, 10));
+    inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+    JLabel passportLabel = new JLabel("Select Passport:");
+    JComboBox<String> passportDropdown = new JComboBox<>();
+    populatePassportDropdown(connection, passportDropdown); // Populate with passport records
+    JLabel firstNameLabel = new JLabel("First Name:");
+    JTextField firstNameField = new JTextField();
+
+    JLabel middleNameLabel = new JLabel("Middle Name:");
+    JTextField middleNameField = new JTextField();
+
+    JLabel lastNameLabel = new JLabel("Last Name:");
+    JTextField lastNameField = new JTextField();
+
+    JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
+    JTextField placeOfIssueField = new JTextField();
+
+    // Add components to the input panel
+    inputPanel.add(passportLabel);
+    inputPanel.add(passportDropdown);
+    inputPanel.add(firstNameLabel);
+    inputPanel.add(firstNameField);
+    inputPanel.add(middleNameLabel);
+    inputPanel.add(middleNameField);
+    inputPanel.add(lastNameLabel);
+    inputPanel.add(lastNameField);
+    inputPanel.add(placeOfIssueLabel);
+    inputPanel.add(placeOfIssueField);
+
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+    JButton updateButton = new JButton("Update");
+    JButton cancelButton = new JButton("Cancel");
+
+    updateButton.setEnabled(false);
+
+    // Enable the update button if any field changes
+    DocumentListener fieldListener = new DocumentListener() {
+        private void toggleUpdateButton() {
+            boolean isFirstNameNotEmpty = !firstNameField.getText().trim().isEmpty();
+            boolean isLastNameNotEmpty = !lastNameField.getText().trim().isEmpty();
+            boolean isMiddleNameNotEmpty = !middleNameField.getText().trim().isEmpty();
+            boolean isPlaceOfIssueNotEmpty = !placeOfIssueField.getText().trim().isEmpty();
+            updateButton.setEnabled(isFirstNameNotEmpty || isLastNameNotEmpty || isMiddleNameNotEmpty || isPlaceOfIssueNotEmpty);
+        }
+
+        public void insertUpdate(DocumentEvent e) { toggleUpdateButton(); }
+        public void removeUpdate(DocumentEvent e) { toggleUpdateButton(); }
+        public void changedUpdate(DocumentEvent e) { toggleUpdateButton(); }
+    };
+
+    firstNameField.getDocument().addDocumentListener(fieldListener);
+    lastNameField.getDocument().addDocumentListener(fieldListener);
+    middleNameField.getDocument().addDocumentListener(fieldListener);
+    placeOfIssueField.getDocument().addDocumentListener(fieldListener);
+
+    updateButton.addActionListener(e -> {
+        String selectedPassport = (String) passportDropdown.getSelectedItem();
+        String firstName = firstNameField.getText().trim();
+        String lastName = lastNameField.getText().trim();
+        String middleName = middleNameField.getText().trim();
+        String placeOfIssue = placeOfIssueField.getText().trim();
+
+        try {
+            if (selectedPassport == null || !selectedPassport.contains(" - ")) {
+                throw new IllegalArgumentException("Invalid passport selected.");
             }
-    
-            public void insertUpdate(DocumentEvent e) { toggleUpdateButton(); }
-            public void removeUpdate(DocumentEvent e) { toggleUpdateButton(); }
-            public void changedUpdate(DocumentEvent e) { toggleUpdateButton(); }
-        };
-    
-        firstNameField.getDocument().addDocumentListener(fieldListener);
-        lastNameField.getDocument().addDocumentListener(fieldListener);
-        middleNameField.getDocument().addDocumentListener(fieldListener);
-        placeOfIssueField.getDocument().addDocumentListener(fieldListener);
-    
-        updateButton.addActionListener(e -> {
-            String selectedPassport = (String) passportDropdown.getSelectedItem();
-            String firstName = firstNameField.getText().trim();
-            String lastName = lastNameField.getText().trim();
-            String middleName = middleNameField.getText().trim();
-            String placeOfIssue = placeOfIssueField.getText().trim();
-    
-            try {
-                if (selectedPassport == null || !selectedPassport.contains(" - ")) {
-                    throw new IllegalArgumentException("Invalid passport selected.");
-                }
-                int passportId = Integer.parseInt(selectedPassport.split(" - ")[0].trim());
-    
-                // Validation for input lengths
-                if (firstName.length() > 25 || lastName.length() > 25 || middleName.length() > 25 || placeOfIssue.length() > 25) {
-                    throw new IllegalArgumentException("Input exceeds character limit of 25.");
-                }
-    
-                // Update the record
-                String[] columns = {"first_name", "last_name", "nationality", "place_of_issue"};
-                Object[] values = {firstName.isEmpty() ? null : firstName, lastName.isEmpty() ? null : lastName, nationality.isEmpty() ? null : nationality, placeOfIssue.isEmpty() ? null : placeOfIssue};
-                String condition = "passport_id = " + passportId;
-    
-                manageRecord.update("passports", condition, columns, values);
-    
-                JOptionPane.showMessageDialog(dialog, "Passport record updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                dialog.dispose();
-            } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(dialog, "Error updating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            int passportId = Integer.parseInt(selectedPassport.split(" - ")[0].trim());
+
+            // Validation for input lengths
+            if (firstName.length() > 25 || lastName.length() > 25 || middleName.length() > 25 || placeOfIssue.length() > 25) {
+                throw new IllegalArgumentException("Input exceeds character limit of 25.");
             }
-        });
-    
-        cancelButton.addActionListener(e -> dialog.dispose());
-    
-        buttonPanel.add(updateButton);
-        buttonPanel.add(cancelButton);
-    
-        dialog.add(inputPanel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-        dialog.setVisible(true);
-    }
+
+            // Update the record
+            String[] columns = {"first_name", "last_name", "middle_name", "place_of_issue"};
+            Object[] values = {firstName.isEmpty() ? null : firstName, 
+                               lastName.isEmpty() ? null : lastName, 
+                               middleName.isEmpty() ? null : middleName, 
+                               placeOfIssue.isEmpty() ? null : placeOfIssue};
+            String condition = "passport_id = " + passportId;
+
+            manageRecord.update("passports", condition, columns, values);
+
+            JOptionPane.showMessageDialog(dialog, "Passport record updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            dialog.dispose();
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(dialog, "Error updating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    cancelButton.addActionListener(e -> dialog.dispose());
+
+    buttonPanel.add(updateButton);
+    buttonPanel.add(cancelButton);
+
+    dialog.add(inputPanel, BorderLayout.CENTER);
+    dialog.add(buttonPanel, BorderLayout.SOUTH);
+    dialog.setVisible(true);
+}
 
     private void populatePassportDropdown(Connection connection, JComboBox<String> passportDropdown) {
         String query = "SELECT passport_id, first_name, last_name FROM passports";
