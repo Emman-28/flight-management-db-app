@@ -1,7 +1,7 @@
 import java.sql.*;
 import java.util.Scanner;
 import operations.*;
-import GUI.*;
+import gui.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -25,7 +25,7 @@ public class Main {
             // report generation
             GenerateReport report = new GenerateReport(connection);
             
-            // Pass the connection and managers to the GUI
+            // Pass the connection and managers to the gui
             new MainFrame(connection, record, transaction, report);
         } catch (SQLException e) {
             System.err.println("An error occurred while interacting with the database: " + e.getMessage());

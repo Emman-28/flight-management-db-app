@@ -1,6 +1,6 @@
-package GUI;
+package gui;
 
-import GUI.ManageRecords.*;
+import gui.ManageRecords.*;
 import operations.*;
 import java.sql.*;
 import javax.imageio.ImageIO;

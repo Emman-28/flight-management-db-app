@@ -1,6 +1,6 @@
-package GUI.ExecuteTransactions;
+package gui.ExecuteTransactions;
 
-import GUI.*;
+import gui.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;

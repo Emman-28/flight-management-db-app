@@ -1,6 +1,6 @@
-package GUI;
+package gui;
 
-import GUI.ExecuteTransactions.*;
+import gui.ExecuteTransactions.*;
 import operations.*;
 import java.sql.*;
 import javax.imageio.ImageIO;

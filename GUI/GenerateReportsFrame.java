@@ -1,8 +1,8 @@
-package GUI;
+package gui;
 
-import GUI.GenerateReports.CompanyRevenueFrame;
-import GUI.GenerateReports.FlightPerformanceFrame;
-import GUI.GenerateReports.PassengerTrafficFrame;
+import gui.GenerateReports.CompanyRevenueFrame;
+import gui.GenerateReports.FlightPerformanceFrame;
+import gui.GenerateReports.PassengerTrafficFrame;
 import operations.*;
 import java.sql.*;
 import javax.imageio.ImageIO;

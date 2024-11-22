@@ -1,4 +1,4 @@
-package GUI.ManageRecords;
+package gui.ManageRecords;
 
 import operations.ExecuteTransaction;
 import operations.GenerateReport;

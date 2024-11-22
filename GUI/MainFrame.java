@@ -1,4 +1,4 @@
-package GUI;
+package gui;
 
 import operations.*;
 import java.sql.*;
