@@ -9,7 +9,6 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -553,9 +552,9 @@ public class PassportManagementFrame extends JFrame {
         dialog.setLocationRelativeTo(this);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton filterButton = new JButton("Read Records via Filters");
-        JButton inputButton = new JButton("Read Record via Input");
-        JButton cancelButton = new JButton("Cancel");
+        JButton filterButton = new JButton("Use Filters");
+        JButton inputButton = new JButton("Use Input");
+        JButton cancelButton = new JButton("Cancel");;
 
         filterButton.setPreferredSize(new Dimension(200, 35));
         inputButton.setPreferredSize(new Dimension(200, 35));
@@ -998,7 +997,7 @@ public class PassportManagementFrame extends JFrame {
     dialog.setLocationRelativeTo(this);
 
     JPanel inputPanel = new JPanel();
-    inputPanel.setLayout(new GridLayout(6, 2, 10, 10));
+    inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
     inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     JLabel passportLabel = new JLabel("Select Passport:");

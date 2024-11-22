@@ -253,8 +253,8 @@ public class AirportManagementFrame extends JFrame {
         dialog.setLocationRelativeTo(this);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton filterButton = new JButton("Read Records via Filters");
-        JButton inputButton = new JButton("Read Record via Input");
+        JButton filterButton = new JButton("Use Filters");
+        JButton inputButton = new JButton("Use Input");
         JButton cancelButton = new JButton("Cancel");
 
         filterButton.setPreferredSize(new Dimension(200, 35));
