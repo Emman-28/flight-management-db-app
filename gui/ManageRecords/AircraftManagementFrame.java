@@ -147,12 +147,15 @@ public class AircraftManagementFrame extends JFrame {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Create components
-        JLabel idLabel = new JLabel("Aircraft ID (11 chars):");
+        JLabel idLabel = new JLabel("Aircraft ID:");
         JTextField idField = new JTextField();
-        JLabel modelLabel = new JLabel("Aircraft Model (25 chars):");
+        idField.setToolTipText("Enter an 11-character Aircraft ID (ex. 'Z902')");
+        JLabel modelLabel = new JLabel("Aircraft Model:");
         JTextField modelField = new JTextField();
-        JLabel capacityLabel = new JLabel("Maximum Capacity (11 digits):");
+        modelField.setToolTipText("Enter an 11-character Aircraft Model (ex. 'Zeus 902')");
+        JLabel capacityLabel = new JLabel("Maximum Capacity:");
         JTextField capacityField = new JTextField();
+        capacityField.setToolTipText("Enter the maximum capacity");;
 
         // Add components in the correct order
         inputPanel.add(idLabel); // Aircraft ID
@@ -293,11 +296,13 @@ public class AircraftManagementFrame extends JFrame {
         JComboBox<String> aircraftDropdown = new JComboBox<>();
         populateAircraftDropdown(connection, aircraftDropdown);
 
-        JLabel nameLabel = new JLabel("Change Aircraft Name (25 chars):");
+        JLabel nameLabel = new JLabel("Change Aircraft Name:");
         JTextField nameField = new JTextField();
+        nameField.setToolTipText("Enter a 25-character Aircraft Name (ex. 'A503')");
 
-        JLabel capacityLabel = new JLabel("Change Maximum Capacity (11 digits):");
+        JLabel capacityLabel = new JLabel("Change Maximum Capacity:");
         JTextField capacityField = new JTextField();
+        capacityField.setToolTipText("Enter the new maximum capacity");;
 
         // Add components to the input panel
         inputPanel.add(aircraftLabel);
@@ -421,7 +426,7 @@ public class AircraftManagementFrame extends JFrame {
 
         filterButton.setPreferredSize(new Dimension(200, 35));
         inputButton.setPreferredSize(new Dimension(200, 35));
-        cancelButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(75, 30));
 
         filterButton.addActionListener(e -> {
             dialog.dispose();
@@ -454,17 +459,20 @@ public class AircraftManagementFrame extends JFrame {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
-        JLabel aircraftIdLabel = new JLabel("Aircraft ID (Single or Comma-separated, e.g., A350, B737):");
+        JLabel aircraftIdLabel = new JLabel("Aircraft ID:");
         JTextField aircraftIdField = new JTextField();
+        aircraftIdField.setToolTipText("Enter in Single or Comma-separated, e.g., A350, B737");
 
-        JLabel aircraftModelLabel = new JLabel("Aircraft Model (Single or Comma-separated, e.g., Airbus, Boeing):");
+        JLabel aircraftModelLabel = new JLabel("Aircraft Model:");
         JTextField aircraftModelField = new JTextField();
+        aircraftModelField.setToolTipText("Enter in Single or Comma-separated, e.g., Airbus, Boeing");
 
         // Toggle for LIKE query
-        JCheckBox likeQueryToggle = new JCheckBox("Use LIKE for Aircraft Model (Supports Wildcards, e.g., %Airbus%)");
+        JCheckBox likeQueryToggle = new JCheckBox("Enable Partial Matches");
 
-        JLabel capacityLabel = new JLabel("Max Capacity (Single or Range, e.g., 150 or 150-300):");
+        JLabel capacityLabel = new JLabel("Max Capacity:");
         JTextField capacityField = new JTextField();
+        capacityField.setToolTipText("Enter in Single or Range, e.g., 150 or 150-300");
 
         inputPanel.add(aircraftIdLabel);
         inputPanel.add(aircraftIdField);
@@ -785,7 +793,7 @@ public class AircraftManagementFrame extends JFrame {
         }
 
         // Columns for the table
-        String[] columnNames = {"Aircraft ID", "Model", "Max Capacity"};
+        String[] columnNames = {"aircraft_id", "aircraft_model", "max_capacity"};
 
         // Convert List<Object[]> to a 2D array for the table data
         Object[][] data = new Object[aircraftData.size()][3];

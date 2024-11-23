@@ -151,11 +151,16 @@ public class AirportManagementFrame extends JFrame {
         int nextAirportId = getNextAirportIdFromDatabase();
 
         // Create components
-        JLabel idLabel = new JLabel("Assigned Airport ID: " + nextAirportId);
-        JLabel nameLabel = new JLabel("Name (25 chars):");
+        JLabel idLabel = new JLabel("Assigned Airport ID: ");
+        JTextField idTextField = new JTextField();
+        idTextField.setText("" + nextAirportId);
+        idTextField.setEditable(false);
+        JLabel nameLabel = new JLabel("Name:");
         JTextField nameField = new JTextField();
-        JLabel countryLabel = new JLabel("Country (25 chars):");
+        nameField.setToolTipText("Enter a 25-character Name");
+        JLabel countryLabel = new JLabel("Country:");
         JTextField countryField = new JTextField();
+        countryField.setToolTipText("Enter a 25-character Name");
         JLabel companyLabel = new JLabel("Select Company:");
 
         // Create company dropdown
@@ -164,7 +169,7 @@ public class AirportManagementFrame extends JFrame {
 
         // Add components in the correct order
         inputPanel.add(idLabel); // Assigned ID
-        inputPanel.add(new JLabel()); // Empty cell for alignment
+        inputPanel.add(idTextField); // Empty cell for alignment
         inputPanel.add(nameLabel); // Airport Name
         inputPanel.add(nameField);
         inputPanel.add(countryLabel); // Country Name
@@ -308,7 +313,7 @@ public class AirportManagementFrame extends JFrame {
 
         filterButton.setPreferredSize(new Dimension(200, 35));
         inputButton.setPreferredSize(new Dimension(200, 35));
-        cancelButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(75, 30));
 
         filterButton.addActionListener(e -> {
             dialog.dispose();
@@ -551,23 +556,27 @@ public class AirportManagementFrame extends JFrame {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
-        JLabel airportIdLabel = new JLabel("Airport ID (Single or Range, e.g., 1 or 1-10):");
+        JLabel airportIdLabel = new JLabel("Airport ID:");
         JTextField airportIdField = new JTextField();
+        airportIdField.setToolTipText("Enter in Single or Range, e.g., 1 or 1-10");
 
-        JLabel airportNameLabel = new JLabel("Airport Name (Single or Comma-separated, e.g., JFK, LAX):");
+        JLabel airportNameLabel = new JLabel("Airport Name:");
         JTextField airportNameField = new JTextField();
+        airportNameField.setToolTipText("Enter in Single or Comma-separated, e.g., JFK, LAX");
 
         // Toggle for LIKE query for Airport Name
-        JCheckBox airportNameLikeToggle = new JCheckBox("Use LIKE for Airport Name (Supports Wildcards, e.g., %JFK%)");
+        JCheckBox airportNameLikeToggle = new JCheckBox("Enable Partial Matches");
 
-        JLabel countryNameLabel = new JLabel("Country Name (Single or Comma-separated, e.g., UAE, United Kingdom):");
+        JLabel countryNameLabel = new JLabel("Country Name:");
         JTextField countryNameField = new JTextField();
+        countryNameField.setToolTipText("Enter in Single or Comma-separated, e.g., UAE, United Kingdom");
 
         // Toggle for LIKE query for Country Name
-        JCheckBox countryNameLikeToggle = new JCheckBox("Use LIKE for Country Name (Supports Wildcards, e.g., %Kingdom%)");
+        JCheckBox countryNameLikeToggle = new JCheckBox("Enable Partial Matches");
 
-        JLabel companyIdLabel = new JLabel("Company ID (Single or Range, e.g., 5 or 5-15):");
+        JLabel companyIdLabel = new JLabel("Company ID:");
         JTextField companyIdField = new JTextField();
+        companyIdField.setToolTipText("Enter in Single or Range, e.g., 5 or 5-15");
 
         inputPanel.add(airportIdLabel);
         inputPanel.add(airportIdField);
@@ -713,6 +722,7 @@ public class AirportManagementFrame extends JFrame {
         populateAirportDropdown(connection, airportDropdown);
         JLabel nameLabel = new JLabel("Create New Airport Name:");
         JTextField nameField = new JTextField();
+        nameField.setToolTipText("Enter a 25-character Name");
 
         JLabel companyLabel = new JLabel("Select New Airport Company:");
         JComboBox<String> companyDropdown = new JComboBox<>();

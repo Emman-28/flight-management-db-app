@@ -150,12 +150,14 @@ public class CompanyManagementFrame extends JFrame {
 
         // Create components
         JLabel idLabel = new JLabel("Assigned Company ID: " + nextCompanyId);
-        JLabel nameLabel = new JLabel("Company Name (25 chars):");
+        JLabel nameLabel = new JLabel("Company Name:");
+        nameLabel.setToolTipText("Enter a 25-charater Name");
         JTextField nameField = new JTextField();
         JLabel foundedLabel = new JLabel("Date Founded (YYYY-MM-DD):");
         JTextField foundedField = new JTextField();
-        JLabel contactLabel = new JLabel("Contact Number (20 digits):");
+        JLabel contactLabel = new JLabel("Contact Number:");
         JTextField contactField = new JTextField();
+        contactLabel.setToolTipText("Enter a 20-digit Number");
 
         // Add components in the correct order
         inputPanel.add(idLabel); // Assigned ID
@@ -445,7 +447,7 @@ public class CompanyManagementFrame extends JFrame {
 
         filterButton.setPreferredSize(new Dimension(200, 35));
         inputButton.setPreferredSize(new Dimension(200, 35));
-        cancelButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(75, 30));
 
         filterButton.addActionListener(e -> {
             dialog.dispose();
@@ -478,20 +480,24 @@ public class CompanyManagementFrame extends JFrame {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
-        JLabel companyIdLabel = new JLabel("Company ID (Single or Range, e.g., 1 or 1-10):");
+        JLabel companyIdLabel = new JLabel("Company ID:");
         JTextField companyIdField = new JTextField();
+        companyIdField.setToolTipText("Enter in Single or Range, e.g., 1 or 1-10");
 
-        JLabel companyNameLabel = new JLabel("Company Name (Single or Comma-separated, e.g., ABC Corp, XYZ Ltd):");
+        JLabel companyNameLabel = new JLabel("Company Name:");
         JTextField companyNameField = new JTextField();
+        companyNameField.setToolTipText("Enter in Single or Comma-separated, e.g., ABC Corp, XYZ Ltd");
 
         // Toggle for LIKE query
-        JCheckBox likeQueryToggle = new JCheckBox("Use LIKE for Company Name (Supports Wildcards, e.g., %Corp%)");
+        JCheckBox likeQueryToggle = new JCheckBox("Enable Partial Matches");
 
-        JLabel dateFoundedLabel = new JLabel("Date Founded (Text or Range, e.g., 2000, 1990-2000, May):");
+        JLabel dateFoundedLabel = new JLabel("Date Founded:");
         JTextField dateFoundedField = new JTextField();
+        dateFoundedField.setToolTipText("Enter in Text or Range, e.g., 2000, 1990-2000, May");
 
-        JLabel contactNumberLabel = new JLabel("Contact Number (Text):");
+        JLabel contactNumberLabel = new JLabel("Contact Number:");
         JTextField contactNumberField = new JTextField();
+        contactNumberField.setToolTipText("Enter Contact Number");
 
         inputPanel.add(companyIdLabel);
         inputPanel.add(companyIdField);

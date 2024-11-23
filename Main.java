@@ -11,7 +11,6 @@ public class Main {
             // Establishing a connection
             connection = DatabaseConnection.connect();
             System.out.println("Connected to the database successfully!");
-            System.out.println("\nWelcome to the Flight Database Management System!\n");
 
             // records management
             ManageRecord record = new ManageRecord(connection);

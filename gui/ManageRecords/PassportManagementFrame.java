@@ -152,13 +152,17 @@ public class PassportManagementFrame extends JFrame {
         // name fields
         JLabel idLabel = new JLabel("Passport ID:"); 
         JTextField idField = new JTextField();
+        idField.setToolTipText("Enter an 11-digit Passport ID");
 
-        JLabel firstNameLabel = new JLabel("First Name (25 chars):");
+        JLabel firstNameLabel = new JLabel("First Name:");
         JTextField firstNameField = new JTextField();
-        JLabel middleNameLabel = new JLabel("Middle Name (25 chars):");
+        firstNameField.setToolTipText("Enter a 25-character Name");
+        JLabel middleNameLabel = new JLabel("Middle Name:");
         JTextField middleNameField = new JTextField();
-        JLabel lastNameLabel = new JLabel("Last Name (25 chars):");
+        middleNameField.setToolTipText("Enter a 25-character Name");
+        JLabel lastNameLabel = new JLabel("Last Name:");
         JTextField lastNameField = new JTextField();
+        lastNameField.setToolTipText("Enter a 25-character Name");
 
         // for the date fields
         String[] days = new String[32];
@@ -196,8 +200,9 @@ public class PassportManagementFrame extends JFrame {
         JComboBox<String> nationalityComboBox = new JComboBox<>(nationalities);
 
         // place of issue
-        JLabel placeOfIssueLabel = new JLabel("Place of Issue (25 chars):");
+        JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
         JTextField placeOfIssueField = new JTextField();
+        placeOfIssueField.setToolTipText("Enter a 25-character Place of Issue");
         
         // issue date
         fillDatesIssuance(days, months, years);
@@ -797,19 +802,23 @@ public class PassportManagementFrame extends JFrame {
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     
         // Labels and text fields for passport attributes
-        JLabel passportIdLabel = new JLabel("Passport ID (Single or Range, e.g., 1 or 1-10):");
+        JLabel passportIdLabel = new JLabel("Passport ID:");
         JTextField passportIdField = new JTextField();
+        passportIdField.setToolTipText("Enter in Single or Range, e.g., 1 or 1-10");
 
         JLabel firstNameLabel = new JLabel("First Name:");
         JTextField firstNameField = new JTextField();
-        JCheckBox firstNameLikeToggle = new JCheckBox("Include Similar Entries");
+        firstNameField.setToolTipText("Enter a 25-character Name");
+        JCheckBox firstNameLikeToggle = new JCheckBox("Enable Partial Matches");
 
         JLabel middleNameLabel = new JLabel("Middle Name:");
         JTextField middleNameField = new JTextField();
+        middleNameField.setToolTipText("Enter a 25-character Name");
         JCheckBox middleNameLikeToggle = new JCheckBox("Include Similar Entries");
 
         JLabel lastNameLabel = new JLabel("Last Name:");
         JTextField lastNameField = new JTextField();
+        lastNameField.setToolTipText("Enter a 25-character Name");
         JCheckBox lastNameLikeToggle = new JCheckBox("Include Similar Entries");
     
         // Issue Date Fields
@@ -881,6 +890,7 @@ public class PassportManagementFrame extends JFrame {
     
         JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
         JTextField placeOfIssueField = new JTextField();
+        placeOfIssueField.setToolTipText("Enter a 25-character Place of Issue");
         JCheckBox placeOfIssueLikeToggle = new JCheckBox("Include Similar Entries");
     
         inputPanel.add(passportIdLabel);
@@ -1065,15 +1075,19 @@ public class PassportManagementFrame extends JFrame {
     populatePassportDropdown(connection, passportDropdown); // Populate with passport records
     JLabel firstNameLabel = new JLabel("First Name:");
     JTextField firstNameField = new JTextField();
+    firstNameField.setToolTipText("Enter a 25-character Name");
 
     JLabel middleNameLabel = new JLabel("Middle Name:");
     JTextField middleNameField = new JTextField();
+    middleNameLabel.setToolTipText("Enter a 25-character Name");
 
     JLabel lastNameLabel = new JLabel("Last Name:");
     JTextField lastNameField = new JTextField();
+    lastNameField.setToolTipText("Enter a 25-character Name");
 
     JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
     JTextField placeOfIssueField = new JTextField();
+    placeOfIssueField.setToolTipText("Enter a 25-character Place of Issue");
 
     // Add components to the input panel
     inputPanel.add(passportLabel);
