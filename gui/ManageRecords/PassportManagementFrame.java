@@ -816,7 +816,7 @@ public class PassportManagementFrame extends JFrame {
         String[] days = new String[32];
         String[] months = new String[13];
         String[] years = new String[101];
-        fillDates(days, months, years);
+        fillDatesIssuance(days, months, years);
 
         JComboBox<String> dayComboBoxBirth = new JComboBox<>(days);
         JComboBox<String> monthComboBoxBirth = new JComboBox<>(months);
