@@ -1,26 +1,31 @@
 package gui.ExecuteTransactions;
 
-import gui.GenerateReports.PassengerTrafficFrame;
-import gui.ManageRecords.*;
 import operations.ExecuteTransaction;
 import operations.GenerateReport;
 import operations.ManageRecord;
 
+
+import java.util.List;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 
-import static gui.ManageRecords.PassportManagementFrame.*;
+import static java.lang.Integer.parseInt;
 
 public class BookFlightFrame extends JFrame {
     private final ManageRecord manageRecord;
@@ -36,8 +41,8 @@ public class BookFlightFrame extends JFrame {
 
         // frame settings
         setTitle("Book a Flight");
-        setSize(800, 600);
-        setLocationRelativeTo(null); // centers window
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         // Main panel with a background image
@@ -62,97 +67,229 @@ public class BookFlightFrame extends JFrame {
         };
         mainPanel.setOpaque(false);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // Create a content panel that will be centered and sized relative to the window
+        JPanel contentPanel = new JPanel(new GridBagLayout());
+        contentPanel.setOpaque(false);
 
-        // Step 1: Passenger Details
+        // Make the content panel semi-transparent with a white background
+        contentPanel.setBackground(new Color(255, 255, 255, 200));
+
+        GridBagConstraints panelGbc = new GridBagConstraints();
+        panelGbc.gridx = 0;
+        panelGbc.gridy = 0;
+        panelGbc.weightx = 0.8; // Use 80% of the window width
+        panelGbc.weighty = 0.9; // Use 90% of the window height
+        panelGbc.fill = GridBagConstraints.BOTH;
+        panelGbc.anchor = GridBagConstraints.CENTER;
+
+        // Add padding around the content panel
+        panelGbc.insets = new Insets(50, 50, 50, 50);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 15, 15, 15); // Increased padding between elements
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 1.0; // Allow components to expand horizontally
+
+        // Customize font sizes based on screen resolution
+        int screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
+        int fontSize = screenHeight / 60; // Adjust font size based on screen height
+        Font labelFont = new Font("Arial", Font.BOLD, fontSize);
+        Font fieldFont = new Font("Arial", Font.PLAIN, fontSize);
+
+        // Step 1: Passenger Details with scaled components
         JLabel firstNameLabel = new JLabel("First Name:");
         JTextField firstNameField = new JTextField(20);
         JLabel lastNameLabel = new JLabel("Last Name:");
         JTextField lastNameField = new JTextField(20);
         JLabel passportIdLabel = new JLabel("Passport ID:");
         JTextField passportIdField = new JTextField(10);
+        ((AbstractDocument) passportIdField.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                    throws BadLocationException {
+                String newString = fb.getDocument().getText(0, fb.getDocument().getLength()) + text;
+                if (text.matches("\\d*") && newString.length() <= 11) {  // Only allow digits and max 11 characters
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
         JButton checkPassportButton = new JButton("Check Passport");
 
+        // Apply fonts and sizes to components
+        Component[] components = {
+                firstNameLabel, firstNameField, lastNameLabel, lastNameField,
+                passportIdLabel, passportIdField, checkPassportButton
+        };
+
+        for (Component comp : components) {
+            if (comp instanceof JLabel) {
+                comp.setFont(labelFont);
+            } else {
+                comp.setFont(fieldFont);
+            }
+            if (comp instanceof JTextField) {
+                ((JTextField) comp).setPreferredSize(new Dimension(0, fontSize * 2));
+            }
+            if (comp instanceof JButton) {
+                ((JButton) comp).setPreferredSize(new Dimension(0, fontSize * 3));
+            }
+        }
+
+        // Layout components with proper scaling
         gbc.gridx = 0;
         gbc.gridy = 0;
-        mainPanel.add(firstNameLabel, gbc);
+        gbc.weightx = 0.3; // Label takes 30% of the width
+        contentPanel.add(firstNameLabel, gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(firstNameField, gbc);
+        gbc.weightx = 0.7; // Field takes 70% of the width
+        contentPanel.add(firstNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        mainPanel.add(lastNameLabel, gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(lastNameLabel, gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(lastNameField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(lastNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        mainPanel.add(passportIdLabel, gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(passportIdLabel, gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(passportIdField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(passportIdField, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 3;
-        mainPanel.add(checkPassportButton, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(checkPassportButton, gbc);
 
-        // Step 2: Flight Selection
+        // Step 2: Flight Selection with scaled components
         JLabel countryLabel = new JLabel("Select Destination Country:");
         JComboBox<String> countryDropdown = new JComboBox<>();
+        try {
+            loadAvailableCountries(countryDropdown);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         JLabel flightLabel = new JLabel("Select Flight:");
         JComboBox<String> flightDropdown = new JComboBox<>();
         JButton loadFlightsButton = new JButton("Load Flights");
 
+        // Apply fonts and sizes to flight selection components
+        Component[] flightComponents = {
+                countryLabel, countryDropdown, flightLabel, flightDropdown, loadFlightsButton
+        };
+
+        for (Component comp : flightComponents) {
+            if (comp instanceof JLabel) {
+                comp.setFont(labelFont);
+            } else {
+                comp.setFont(fieldFont);
+            }
+            if (comp instanceof JComboBox) {
+                ((JComboBox<?>) comp).setPreferredSize(new Dimension(0, fontSize * 2));
+            }
+            if (comp instanceof JButton) {
+                ((JButton) comp).setPreferredSize(new Dimension(0, fontSize * 3));
+            }
+        }
+
         gbc.gridx = 0;
         gbc.gridy = 4;
-        mainPanel.add(countryLabel, gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(countryLabel, gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(countryDropdown, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(countryDropdown, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 5;
-        mainPanel.add(flightLabel, gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(flightLabel, gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(flightDropdown, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(flightDropdown, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 6;
-        mainPanel.add(loadFlightsButton, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(loadFlightsButton, gbc);
 
-        // Step 3: Booking Confirmation
+        // Step 3: Booking Confirmation with scaled button
         JButton bookButton = new JButton("Book Flight");
+        bookButton.setFont(fieldFont);
+        bookButton.setPreferredSize(new Dimension(0, fontSize * 3));
 
         gbc.gridx = 1;
-        gbc.gridy = 7;
-        mainPanel.add(bookButton, gbc);
+        gbc.gridy = 10;
+        gbc.weightx = 0.7;
+        contentPanel.add(bookButton, gbc);
 
-        // Event Handlers
+        // Add the content panel to the main panel
+        mainPanel.add(contentPanel, panelGbc);
+
+        // Event Handlers (unchanged)
         checkPassportButton.addActionListener(e -> {
-            String passportId = passportIdField.getText();
+            String passportIdText = passportIdField.getText().trim();
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+
             try {
-                if (!passportExists(passportId)) {
-                    int response = JOptionPane.showConfirmDialog(this,
-                            "Passport ID not found. Would you like to create a passport record?",
-                            "Passport Not Found",
-                            JOptionPane.YES_NO_OPTION);
-                    if (response == JOptionPane.YES_OPTION) {
-                        showCreateRecordDialog();
+                // Validate passport ID format
+                if (passportIdText.isEmpty()) {
+                    throw new IllegalArgumentException("Passport ID cannot be empty.");
+                }
+                if (passportIdText.length() > 11) {
+                    throw new IllegalArgumentException("Passport ID cannot contain more than 11 digits.");
+                }
+                if (!passportIdText.matches("[0-9]+")) {
+                    throw new IllegalArgumentException("Passport ID must contain only digits.");
+                }
+
+                int passportId = Integer.parseInt(passportIdText);
+
+                if (!passportExists(passportId) || !passengerExists(passportId)) {
+                    if (!passportExists(passportId)){
+                        int response = JOptionPane.showConfirmDialog(this,
+                                "Passport ID not found. Would you like to create a passport record?",
+                                "Passport Not Found",
+                                JOptionPane.YES_NO_OPTION);
+                        if (response == JOptionPane.YES_OPTION) {
+                            showCreateRecordDialog(passportId, firstName, lastName);
+                        }
                     }
-                } else if (!passengerExists(passportId)) {
-                    int response = JOptionPane.showConfirmDialog(this,
-                            "Passenger record not found. Would you like to create a passenger record?",
-                            "Passenger Not Found",
-                            JOptionPane.YES_NO_OPTION);
-                    if (response == JOptionPane.YES_OPTION) {
-                        createPassengerRecord(firstNameField.getText(), lastNameField.getText(), passportId);
+
+                    if (!passengerExists(passportId)) {
+                        int response = JOptionPane.showConfirmDialog(this,
+                                "Passenger record not found. Would you like to create a passenger record?",
+                                "Passenger Not Found",
+                                JOptionPane.YES_NO_OPTION);
+                        if (response == JOptionPane.YES_OPTION) {
+                            showCreatePassengerDialog(passportId);
+                        }
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Passport and passenger records found. You can proceed to book a flight.");
                 }
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this,
+                        ex.getMessage(),
+                        "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE);
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "An error occurred while checking records.");
+                JOptionPane.showMessageDialog(this,
+                        "An error occurred while checking records: " + ex.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -166,15 +303,118 @@ public class BookFlightFrame extends JFrame {
             }
         });
 
+        // Step 4: Seat Selection
+        JLabel rowLabel = new JLabel("Select Row:");
+        JComboBox<String> rowDropdown = new JComboBox<>();
+        JLabel seatLabel = new JLabel("Select Seat:");
+        JComboBox<Integer> seatDropdown = new JComboBox<>();
+        JButton loadSeatsButton = new JButton("Load Seats");
+
+// Apply fonts and sizes to seat selection components
+        Component[] seatComponents = {rowLabel, rowDropdown, seatLabel, seatDropdown, loadSeatsButton};
+        for (Component comp : seatComponents) {
+            if (comp instanceof JLabel) {
+                comp.setFont(labelFont);
+            } else {
+                comp.setFont(fieldFont);
+            }
+            if (comp instanceof JComboBox) {
+                ((JComboBox<?>) comp).setPreferredSize(new Dimension(0, fontSize * 2));
+            }
+            if (comp instanceof JButton) {
+                ((JButton) comp).setPreferredSize(new Dimension(0, fontSize * 3));
+            }
+        }
+
+// Add seat selection components to the panel
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.weightx = 0.3;
+        contentPanel.add(rowLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        contentPanel.add(rowDropdown, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.weightx = 0.3;
+        contentPanel.add(seatLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        contentPanel.add(seatDropdown, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 9;
+        gbc.weightx = 0.7;
+        contentPanel.add(loadSeatsButton, gbc);
+
+        loadSeatsButton.addActionListener(e -> {
+            // Get the selected flight ID from the dropdown
+            String selectedFlightId = (String) flightDropdown.getSelectedItem();
+
+            // Check if the selected flight ID is not null and has at least 4 characters
+            if (selectedFlightId != null && selectedFlightId.length() >= 4) {
+                // Parse the flight ID to only keep the first 4 characters
+                String flightId = selectedFlightId.substring(0, 4);  // Get the first 4 characters
+                System.out.println("Parsed Flight ID: " + flightId);  // Debug statement
+
+                // Proceed with removing items and loading seats
+                rowDropdown.removeAllItems();
+                seatDropdown.removeAllItems();
+
+                try {
+                    // Query for taken seats for the selected flight
+                    Set<String> takenSeats = getTakenSeats(flightId);  // Use the parsed flightId
+                    populateSeatOptions(rowDropdown, seatDropdown, takenSeats);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this, "Failed to load seat availability.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a valid flight before loading seats.");
+            }
+        });
+
+
+        // Get the selected flight item from the dropdown
+        String selectedFlightItem = (String) flightDropdown.getSelectedItem();
+
+// Ensure the selected item is not null and contains the expected delimiter " — "
+        if (selectedFlightItem != null && selectedFlightItem.contains(" — ")) {
+            // Split the string by " — " and extract the first part as the flight ID
+            String flightId = selectedFlightItem.split(" — ")[0];  // Get the first part before " — "
+            System.out.println(flightId);
+        }
+// Event handler for booking the flight
         bookButton.addActionListener(e -> {
-            String flightId = (String) flightDropdown.getSelectedItem();
+            // Get the selected flight ID from the dropdown
+            String flightId = (String) ((String) flightDropdown.getSelectedItem()).substring(0,4);
+
+            if (flightId == null || flightId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please select a flight before booking.", "Incomplete Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Get other necessary details and proceed to book
+            String selectedRow = (String) rowDropdown.getSelectedItem();
+            Integer selectedSeat = (Integer) seatDropdown.getSelectedItem();
+
+            if (selectedRow == null || selectedSeat == null) {
+                JOptionPane.showMessageDialog(this, "Please select a seat before booking.", "Incomplete Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String seatNumber = selectedRow + selectedSeat;  // Combine row and seat into a single seat number (e.g., "A1")
+
             try {
-                String seatNumber = generateSeatNumber(flightId);
-                transaction.bookFlight(getPassengerId(passportIdField.getText()), flightId, seatNumber, new BigDecimal("5000.00")); // Example price
+                // Book the flight using the selected flight ID and seat
+                transaction.bookFlight(getPassengerIdFromPassportId(parseInt(passportIdField.getText())), flightId, seatNumber, BigDecimal.valueOf(100.00));  // Example price
                 JOptionPane.showMessageDialog(this, "Flight booked successfully. Your seat number is: " + seatNumber);
             } catch (SQLException ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Failed to book flight.");
+                JOptionPane.showMessageDialog(this, "Failed to book flight: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -182,81 +422,240 @@ public class BookFlightFrame extends JFrame {
         setVisible(true);
     }
 
-    private boolean passportExists(String passportId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM passports WHERE passport_id = ?";
+    // Helper Methods
+    private Set<String> getTakenSeats(String flightId) throws SQLException {
+        Set<String> takenSeats = new HashSet<>();
+        String query = "SELECT seat_number FROM tickets WHERE booking_id IN " +
+                "(SELECT booking_id FROM bookings WHERE flight_id = ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, flightId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                takenSeats.add(rs.getString("seat_number"));
+            }
+        }
+        return takenSeats;
+    }
+
+    private void populateSeatOptions(JComboBox<String> rowDropdown, JComboBox<Integer> seatDropdown, Set<String> takenSeats) {
+        // Generate rows A-ZZ
+        List<String> rows = new ArrayList<>();
+        for (char c1 = 'A'; c1 <= 'Z'; c1++) {
+            rows.add(String.valueOf(c1));
+        }
+        for (char c1 = 'A'; c1 <= 'Z'; c1++) {
+            for (char c2 = 'A'; c2 <= 'Z'; c2++) {
+                rows.add("" + c1 + c2);
+            }
+        }
+
+        // Populate row dropdown
+        for (String row : rows) {
+            boolean rowHasFreeSeats = false;
+            for (int seat = 1; seat <= 12; seat++) {
+                String seatCode = row + seat;
+                if (!takenSeats.contains(seatCode)) {
+                    rowHasFreeSeats = true;
+                }
+            }
+            if (rowHasFreeSeats) {
+                rowDropdown.addItem(row);
+            }
+        }
+
+        // Populate seat dropdown when row is selected
+        rowDropdown.addActionListener(e -> {
+            seatDropdown.removeAllItems();
+            String selectedRow = (String) rowDropdown.getSelectedItem();
+            if (selectedRow != null) {
+                for (int seat = 1; seat <= 12; seat++) {
+                    String seatCode = selectedRow + seat;
+                    if (!takenSeats.contains(seatCode)) {
+                        seatDropdown.addItem(seat);
+                    }
+                }
+            }
+        });
+    }
+
+    private boolean passportExists(int passportId) throws SQLException {
+        return transaction.ensurePassportExists(passportId);
+    }
+
+    private boolean passengerExists(int passportId) throws SQLException {
+        return transaction.doesPassengerExistWithPassport(passportId);
+    }
+
+    private void showCreatePassengerDialog(int passportId) {
+        JDialog dialog = new JDialog(this, "Create Passenger Record", true);
+        dialog.setSize(450, 250);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Create components
+        JLabel contactLabel = new JLabel("Contact Number (20 digits):");
+        JTextField contactField = new JTextField();
+        JLabel emailLabel = new JLabel("Email Address (255 chars):");
+        JTextField emailField = new JTextField();
+
+        // Add components
+        inputPanel.add(contactLabel);
+        inputPanel.add(contactField);
+        inputPanel.add(emailLabel);
+        inputPanel.add(emailField);
+
+        // Create buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton createButton = new JButton("Create");
+        JButton cancelButton = new JButton("Cancel");
+
+        createButton.setEnabled(false);
+
+        // Enable create button only if all fields are filled
+        DocumentListener fieldListener = new DocumentListener() {
+            private void checkFields() {
+                createButton.setEnabled(!contactField.getText().trim().isEmpty() &&
+                        !emailField.getText().trim().isEmpty());
+            }
+
+            public void insertUpdate(DocumentEvent e) { checkFields(); }
+            public void removeUpdate(DocumentEvent e) { checkFields(); }
+            public void changedUpdate(DocumentEvent e) { checkFields(); }
+        };
+
+        contactField.getDocument().addDocumentListener(fieldListener);
+        emailField.getDocument().addDocumentListener(fieldListener);
+
+        createButton.addActionListener(e -> {
+            String contactNumber = contactField.getText().trim();
+            String emailAddress = emailField.getText().trim();
+
+            try {
+                // Validate input
+                if (contactNumber.length() > 20) {
+                    throw new IllegalArgumentException("Contact number cannot exceed 20 digits.");
+                }
+                if (emailAddress.length() > 255) {
+                    throw new IllegalArgumentException("Email address cannot exceed 255 characters.");
+                }
+
+                // Validate email format
+                if (!emailAddress.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                    throw new IllegalArgumentException("Please enter a valid email address.");
+                }
+
+                int nextPassengerId = getPassengerId(); // You'd need to implement this
+
+                manageRecord.create("passengers",
+                        new String[]{"passenger_id", "passport_id", "contact_number", "email_address"},
+                        new Object[]{nextPassengerId, passportId, contactNumber, emailAddress});
+                JOptionPane.showMessageDialog(dialog,
+                        "Passenger record successfully created!",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+                dialog.dispose();
+
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(dialog,
+                        ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog,
+                        "Error creating record: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(createButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(inputPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void loadAvailableCountries(JComboBox<String> countryDropdown) throws SQLException {
+        String sql = """
+        SELECT DISTINCT dest.country_name 
+        FROM flights f
+        JOIN airports dest ON f.dest_airport_id = dest.airport_id
+        WHERE f.flight_status = 'SCHEDULED' 
+        AND f.expected_departure_time > NOW()
+        ORDER BY dest.country_name
+    """;
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, passportId);
             ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
+            countryDropdown.removeAllItems();
+            countryDropdown.addItem("Select Country");
+            while (rs.next()) {
+                countryDropdown.addItem(rs.getString("country_name"));
+            }
         }
     }
 
-    private boolean passengerExists(String passportId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM passengers WHERE passport_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, passportId);
-            ResultSet rs = ps.executeQuery();
-            return rs.next() && rs.getInt(1) > 0;
-        }
-    }
+    private void loadAvailableFlights(String selectedCountry, JComboBox<String> flightDropdown) throws SQLException {
+        String sql = """
+        SELECT 
+            f.flight_id,
+            orig.country_name AS origin_country,
+            dest.country_name AS destination_country,
+            f.expected_departure_time,
+            f.expected_arrival_time
+        FROM flights f
+        JOIN airports orig ON f.origin_airport_id = orig.airport_id
+        JOIN airports dest ON f.dest_airport_id = dest.airport_id
+        WHERE dest.country_name = ?
+        AND f.flight_status = 'SCHEDULED'
+        AND f.expected_departure_time > NOW()
+        AND f.seating_capacity > (
+            SELECT COUNT(*) 
+            FROM bookings b 
+            WHERE b.flight_id = f.flight_id 
+            AND b.booking_status = 'CONFIRMED'
+        )
+        ORDER BY f.expected_departure_time
+    """;
 
-    private void createPassengerRecord(String firstName, String lastName, String passportId) throws SQLException {
-        String sql = "INSERT INTO passengers (first_name, last_name, passport_id) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, firstName);
-            ps.setString(2, lastName);
-            ps.setString(3, passportId);
-            ps.executeUpdate();
-        }
-    }
-
-    private void loadAvailableFlights(String country, JComboBox<String> flightDropdown) throws SQLException {
-        String sql = "SELECT flight_id, airport, origin_country, destination_country, expected_departure_time, expected_arrival_time FROM flights WHERE destination_country = ? AND seating_capacity > 0";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, country);
+            ps.setString(1, selectedCountry);
             ResultSet rs = ps.executeQuery();
             flightDropdown.removeAllItems();
+            flightDropdown.addItem("Select Flight");
+
             while (rs.next()) {
-                String flightDetails = String.format("%s - %s (%s to %s), Departure: %s, Arrival: %s",
+                String flightDetails = String.format("%s — %s to %s — %s to %s",
                         rs.getString("flight_id"),
-                        rs.getString("airport"),
                         rs.getString("origin_country"),
                         rs.getString("destination_country"),
-                        rs.getTimestamp("expected_departure_time"),
-                        rs.getTimestamp("expected_arrival_time"));
+                        rs.getTimestamp("expected_departure_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+                        rs.getTimestamp("expected_arrival_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                );
                 flightDropdown.addItem(flightDetails);
             }
         }
     }
 
-    private String generateSeatNumber(String flightId) throws SQLException {
-        String sql = "SELECT seating_capacity FROM flights WHERE flight_id = ?";
+    private int getPassengerId() throws SQLException {
+        String sql = "SELECT MAX(passenger_id) FROM passengers";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, flightId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                int capacity = rs.getInt("seating_capacity");
-                char row = (char) ('A' + (capacity / 3));
-                int column = (capacity % 3) + 1;
-                return row + String.valueOf(column);
+                return rs.getInt(1) + 1; // Returns the next available ID (highest + 1)
             }
-            throw new SQLException("Failed to retrieve flight seating capacity.");
+            return 1; // If no records exist, start with ID 1
         }
     }
 
-    private int getPassengerId(String passportId) throws SQLException {
-        String sql = "SELECT passenger_id FROM passengers WHERE passport_id = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, passportId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("passenger_id");
-            }
-            throw new SQLException("Passenger ID not found.");
-        }
-    }
-
-    public void showCreateRecordDialog() {
+    public void showCreateRecordDialog(int prefillPassportId, String prefillFirstName, String prefillLastName) {
         JDialog dialog = new JDialog(this, "Create Passport Record", true);
         dialog.setSize(750, 600);
         dialog.setLayout(new BorderLayout());
@@ -268,15 +667,16 @@ public class BookFlightFrame extends JFrame {
 
         // name fields
         JLabel idLabel = new JLabel("Passport ID:");
-        JTextField idField = new JTextField();
+        JTextField idField = new JTextField(String.valueOf(prefillPassportId));
         idField.setEditable(true);
 
         JLabel firstNameLabel = new JLabel("First Name (25 chars):");
-        JTextField firstNameField = new JTextField();
+        JTextField firstNameField = new JTextField(prefillFirstName); // Pre-fill first name
         JLabel middleNameLabel = new JLabel("Middle Name (25 chars):");
         JTextField middleNameField = new JTextField();
         JLabel lastNameLabel = new JLabel("Last Name (25 chars):");
-        JTextField lastNameField = new JTextField();
+        JTextField lastNameField = new JTextField(prefillLastName); // Pre-fill last name
+
 
         // for the date fields
         String[] days = new String[32];
@@ -304,8 +704,8 @@ public class BookFlightFrame extends JFrame {
         genderModel.addElement("--");
         genderModel.addElement("Male");
         genderModel.addElement("Female");
-        genderModel.addElement("Others");
-        JLabel genderLabel = new JLabel("Gender:");
+        genderModel.addElement("Other");
+        JLabel genderLabel = new JLabel("Sex:");
         JComboBox<String> genderComboBox = new JComboBox<>(genderModel);
 
         // nationalities
@@ -460,7 +860,7 @@ public class BookFlightFrame extends JFrame {
                     throw new IllegalArgumentException("Input length exceeds allowed character limits.");
                 }
 
-                if(dateOfBirth == null || issueDate == null || expirationDate == null || sex == "--" || passport_id == null || firstName == null || lastName == null || nationality == null || placeOfIssue == null) {
+                if(dateOfBirth == null || issueDate == null || expirationDate == null || sex.equals("--") || passport_id == null || firstName == null || lastName == null || nationality == null || placeOfIssue == null) {
                     throw new IllegalArgumentException("All fields must be filled.");
                 }
 
@@ -536,9 +936,26 @@ public class BookFlightFrame extends JFrame {
         }
         years[0] = "--";
         for(int i = 1; i < 101; i++) {
-            years[i] = String.valueOf(3000 - i);
+            years[i] = String.valueOf(2100 - i);
         }
     }
+
+    private Integer getPassengerIdFromPassportId(int passportId) throws SQLException {
+        // SQL to check if the passenger exists and fetch their ID
+        String query = "SELECT passenger_id FROM passengers WHERE passport_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, passportId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("passenger_id");
+                } else {
+                    // If no matching record found, return null
+                    return null;
+                }
+            }
+        }
+    }
+
 
     private String[] fillNationalities() {
         String[] nationalities = {
