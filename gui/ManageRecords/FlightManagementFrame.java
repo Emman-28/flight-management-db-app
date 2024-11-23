@@ -1,9 +1,10 @@
-package GUI.ManageRecords;
+package gui.ManageRecords;
 
 import operations.FlightManager;
 import operations.ManageRecord;
 import operations.ExecuteTransaction;
 import operations.GenerateReport;
+import gui.ManageRecordsFrame;
 
 import javax.swing.*;
 import java.awt.*;
@@ -70,7 +71,7 @@ public class FlightManagementFrame extends JFrame {
         backButton.setPreferredSize(new Dimension(150, 30));
         backButton.addActionListener(e -> {
             dispose();
-            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Back to ManageRecordsFrame
+            new ManageRecordsFrame(connection, manageRecord, transaction, report);
         });
         bottomPanel.add(backButton);
 
