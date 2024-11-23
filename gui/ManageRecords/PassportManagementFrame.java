@@ -18,8 +18,8 @@ import operations.*;
 public class PassportManagementFrame extends JFrame {
     private final ManageRecord manageRecord;
     private final ExecuteTransaction transaction;
-    private final GenerateReport report;
     private final Connection connection;
+    private final GenerateReport report;
 
     public PassportManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         this.connection = connection;
@@ -139,7 +139,7 @@ public class PassportManagementFrame extends JFrame {
         frame.setVisible(true);
     }
 
-    private void showCreateRecordDialog() {
+    public void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Passport Record", true);
         dialog.setSize(750, 600);
         dialog.setLayout(new BorderLayout());
@@ -1217,4 +1217,5 @@ public class PassportManagementFrame extends JFrame {
     
         dialog.setVisible(true);
     }
+
 }
