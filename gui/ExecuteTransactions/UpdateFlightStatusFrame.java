@@ -1,4 +1,4 @@
-package GUI.ExecuteTransactions;
+package gui.ExecuteTransactions;
 
 import operations.ExecuteTransaction;
 
