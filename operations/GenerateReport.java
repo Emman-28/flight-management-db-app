@@ -9,74 +9,150 @@ public class GenerateReport {
         this.connection = connection;
     }
 
-    public String passengerAirportTraffic(String originAirportCode, String startDate, String endDate) {
-        /*
-        return """
+    public Object[][] passengerAirportTraffic(String originAirportCode, String startDate, String endDate, Connection connection) throws SQLException {
+        String query = """
             SELECT 
-                COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
-                COUNT(DISTINCT flights.flight_id) AS number_of_flights,
-                SUM(CASE WHEN flights.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
-                SUM(CASE WHEN flights.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
-                SUM(CASE WHEN flights.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
-                SUM(tickets.price) AS total_payments
-            FROM flights
-            JOIN bookings ON flights.flight_id = bookings.flight_id
-            JOIN tickets ON bookings.booking_id = tickets.booking_id
-            WHERE flights.origin_airport_id = (SELECT airport_id FROM airports WHERE name = '""" + originAirportCode + """')
-              AND bookings.booking_date BETWEEN '""" + startDate + """' AND '""" + endDate + """'
-              AND bookings.booking_status != 'Refunded'
-              AND flights.flight_status != 'Cancelled'
-            """;
-        */
-
-        return "";
+                COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
+                COUNT(DISTINCT f.flight_id) AS number_of_flights,
+                SUM(CASE WHEN f.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
+                SUM(CASE WHEN f.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
+                SUM(CASE WHEN f.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
+                SUM(t.price) AS total_payments
+            FROM flights f
+            JOIN bookings b ON f.flight_id = b.flight_id
+            JOIN tickets t ON b.booking_id = t.booking_id
+            WHERE f.origin_airport_id = (SELECT airport_id FROM airports WHERE name = ?)
+              AND b.booking_date BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded'
+              AND f.flight_status != 'Cancelled';
+        """;
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            stmt.setString(1, originAirportCode);
+            stmt.setString(2, startDate);
+            stmt.setString(3, endDate);
+            ResultSet rs = stmt.executeQuery();
+    
+            rs.last();
+            int rowCount = rs.getRow();
+            rs.beforeFirst();
+    
+            Object[][] data = new Object[rowCount][6]; // 6 columns
+            int rowIndex = 0;
+    
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getInt("number_of_passengers");
+                data[rowIndex][1] = rs.getInt("number_of_flights");
+                data[rowIndex][2] = rs.getInt("flights_with_delay");
+                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
+                data[rowIndex][4] = rs.getInt("successful_flights");
+                data[rowIndex][5] = rs.getDouble("total_payments");
+                rowIndex++;
+            }
+            return data;
+        }
     }
+    
 
-    public String passengerDestinationTraffic(String destinationAirportCode, String startDate, String endDate) {
-        /*
-        return """
+    public Object[][] passengerDestinationTraffic(String destinationAirportCode, String startDate, String endDate, Connection connection) throws SQLException {
+        String query = """
             SELECT 
-                COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
-                COUNT(DISTINCT flights.flight_id) AS number_of_flights,
-                SUM(CASE WHEN flights.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
-                SUM(CASE WHEN flights.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
-                SUM(CASE WHEN flights.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
-                SUM(tickets.price) AS total_payments
-            FROM flights
-            JOIN bookings ON flights.flight_id = bookings.flight_id
-            JOIN tickets ON bookings.booking_id = tickets.booking_id
-            WHERE flights.dest_airport_id = (SELECT airport_id FROM airports WHERE name = '""" + destinationAirportCode + """')
-              AND bookings.booking_date BETWEEN '""" + startDate + """' AND '""" + endDate + """'
-              AND bookings.booking_status != 'Refunded'
-              AND flights.flight_status != 'Cancelled'
-            """;
-            */
-            return "";
+                COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
+                COUNT(DISTINCT f.flight_id) AS number_of_flights,
+                SUM(CASE WHEN f.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
+                SUM(CASE WHEN f.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
+                SUM(CASE WHEN f.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
+                SUM(t.price) AS total_payments
+            FROM flights f
+            JOIN bookings b ON f.flight_id = b.flight_id
+            JOIN tickets t ON b.booking_id = t.booking_id
+            WHERE f.dest_airport_id = (SELECT airport_id FROM airports WHERE name = ?)
+              AND b.booking_date BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded'
+              AND f.flight_status != 'Cancelled';
+        """;
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            stmt.setString(1, destinationAirportCode);
+            stmt.setString(2, startDate);
+            stmt.setString(3, endDate);
+            ResultSet rs = stmt.executeQuery();
+    
+            rs.last();
+            int rowCount = rs.getRow();
+            rs.beforeFirst();
+    
+            Object[][] data = new Object[rowCount][6]; // 6 columns
+            int rowIndex = 0;
+    
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getInt("number_of_passengers");
+                data[rowIndex][1] = rs.getInt("number_of_flights");
+                data[rowIndex][2] = rs.getInt("flights_with_delay");
+                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
+                data[rowIndex][4] = rs.getInt("successful_flights");
+                data[rowIndex][5] = rs.getDouble("total_payments");
+                rowIndex++;
+            }
+            return data;
+        }
     }
+    
 
-    public String passengerCompanyTraffic(String companyName, String startDate, String endDate) {
-        /*
-        return """
+    public Object[][] passengerCompanyTraffic(String companyName, String startDate, String endDate, Connection connection) throws SQLException {
+        String query = """
             SELECT 
-                COUNT(DISTINCT bookings.passenger_id) AS number_of_passengers,
-                COUNT(DISTINCT flights.flight_id) AS number_of_flights,
-                SUM(CASE WHEN flights.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
-                SUM(CASE WHEN flights.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
-                SUM(CASE WHEN flights.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
-                SUM(tickets.price) AS total_payments
-            FROM flights
-            JOIN bookings ON flights.flight_id = bookings.flight_id
-            JOIN tickets ON bookings.booking_id = tickets.booking_id
-            WHERE flights.aircraft_id IN (
+                COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
+                COUNT(DISTINCT f.flight_id) AS number_of_flights,
+                SUM(CASE WHEN f.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
+                SUM(CASE WHEN f.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
+                SUM(CASE WHEN f.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
+                SUM(t.price) AS total_payments
+            FROM flights f
+            JOIN bookings b ON f.flight_id = b.flight_id
+            JOIN tickets t ON b.booking_id = t.booking_id
+            WHERE f.aircraft_id IN (
                 SELECT aircraft_id FROM aircrafts 
-                WHERE aircraft_id IN (SELECT aircraft_id FROM flights WHERE origin_airport_id IN (SELECT airport_id FROM airports WHERE company_id IN (SELECT company_id FROM companies WHERE name = '""" + companyName + """'))))
-              AND bookings.booking_date BETWEEN '""" + startDate + """' AND '""" + endDate + """'
-              AND bookings.booking_status != 'Refunded'
-              AND flights.flight_status != 'Cancelled'
-            """;*/
-
-            return "";
-    }
+                WHERE aircraft_id IN (
+                    SELECT aircraft_id FROM flights 
+                    WHERE origin_airport_id IN (
+                        SELECT airport_id FROM airports 
+                        WHERE company_id IN (
+                            SELECT company_id FROM companies WHERE name = ?
+                        )
+                    )
+                )
+            )
+              AND b.booking_date BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded'
+              AND f.flight_status != 'Cancelled';
+        """;
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            stmt.setString(1, companyName);
+            stmt.setString(2, startDate);
+            stmt.setString(3, endDate);
+            ResultSet rs = stmt.executeQuery();
+    
+            rs.last();
+            int rowCount = rs.getRow();
+            rs.beforeFirst();
+    
+            Object[][] data = new Object[rowCount][6]; // 6 columns
+            int rowIndex = 0;
+    
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getInt("number_of_passengers");
+                data[rowIndex][1] = rs.getInt("number_of_flights");
+                data[rowIndex][2] = rs.getInt("flights_with_delay");
+                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
+                data[rowIndex][4] = rs.getInt("successful_flights");
+                data[rowIndex][5] = rs.getDouble("total_payments");
+                rowIndex++;
+            }
+            return data;
+        }
+    }   
 
     public Object[][] companyRevenue(int selectedYear, Connection connection) throws SQLException {
         String query = """
