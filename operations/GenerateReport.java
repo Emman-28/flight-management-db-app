@@ -9,7 +9,7 @@ public class GenerateReport {
         this.connection = connection;
     }
 
-    public Object[][] passengerAirportTraffic(String originAirportCode, String startDate, String endDate, Connection connection) throws SQLException {
+    public Object[][] passengerAirportTraffic(int originAirportId, String startDate, String endDate) throws SQLException {
         String query = """
             SELECT 
                 COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
@@ -21,70 +21,25 @@ public class GenerateReport {
             FROM flights f
             JOIN bookings b ON f.flight_id = b.flight_id
             JOIN tickets t ON b.booking_id = t.booking_id
-            WHERE f.origin_airport_id = (SELECT airport_id FROM airports WHERE name = ?)
+            WHERE f.origin_airport_id = ?
               AND b.booking_date BETWEEN ? AND ?
               AND b.booking_status != 'Refunded'
               AND f.flight_status != 'Cancelled';
         """;
-    
-        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            stmt.setString(1, originAirportCode);
-            stmt.setString(2, startDate);
-            stmt.setString(3, endDate);
-            ResultSet rs = stmt.executeQuery();
-    
-            rs.last();
-            int rowCount = rs.getRow();
-            rs.beforeFirst();
-    
-            Object[][] data = new Object[rowCount][6]; // 6 columns
-            int rowIndex = 0;
-    
-            while (rs.next()) {
-                data[rowIndex][0] = rs.getInt("number_of_passengers");
-                data[rowIndex][1] = rs.getInt("number_of_flights");
-                data[rowIndex][2] = rs.getInt("flights_with_delay");
-                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
-                data[rowIndex][4] = rs.getInt("successful_flights");
-                data[rowIndex][5] = rs.getDouble("total_payments");
-                rowIndex++;
-            }
-            return data;
-        }
-    }
-    
 
-    public Object[][] passengerDestinationTraffic(String destinationAirportCode, String startDate, String endDate, Connection connection) throws SQLException {
-        String query = """
-            SELECT 
-                COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
-                COUNT(DISTINCT f.flight_id) AS number_of_flights,
-                SUM(CASE WHEN f.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
-                SUM(CASE WHEN f.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
-                SUM(CASE WHEN f.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
-                SUM(t.price) AS total_payments
-            FROM flights f
-            JOIN bookings b ON f.flight_id = b.flight_id
-            JOIN tickets t ON b.booking_id = t.booking_id
-            WHERE f.dest_airport_id = (SELECT airport_id FROM airports WHERE name = ?)
-              AND b.booking_date BETWEEN ? AND ?
-              AND b.booking_status != 'Refunded'
-              AND f.flight_status != 'Cancelled';
-        """;
-    
         try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            stmt.setString(1, destinationAirportCode);
+            stmt.setInt(1, originAirportId);
             stmt.setString(2, startDate);
             stmt.setString(3, endDate);
             ResultSet rs = stmt.executeQuery();
-    
+
             rs.last();
             int rowCount = rs.getRow();
             rs.beforeFirst();
-    
+
             Object[][] data = new Object[rowCount][6]; // 6 columns
             int rowIndex = 0;
-    
+
             while (rs.next()) {
                 data[rowIndex][0] = rs.getInt("number_of_passengers");
                 data[rowIndex][1] = rs.getInt("number_of_flights");
@@ -97,6 +52,51 @@ public class GenerateReport {
             return data;
         }
     }
+
+    public Object[][] passengerDestinationTraffic(int destinationAirportId, String startDate, String endDate) throws SQLException {
+        String query = """
+            SELECT 
+                COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
+                COUNT(DISTINCT f.flight_id) AS number_of_flights,
+                SUM(CASE WHEN f.flight_status = 'Delayed' THEN 1 ELSE 0 END) AS flights_with_delay,
+                SUM(CASE WHEN f.flight_status = 'Cancelled' THEN 1 ELSE 0 END) AS flights_with_cancellation,
+                SUM(CASE WHEN f.flight_status = 'Arrived' THEN 1 ELSE 0 END) AS successful_flights,
+                SUM(t.price) AS total_payments
+            FROM flights f
+            JOIN bookings b ON f.flight_id = b.flight_id
+            JOIN tickets t ON b.booking_id = t.booking_id
+            WHERE f.dest_airport_id = ?
+              AND b.booking_date BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded'
+              AND f.flight_status != 'Cancelled';
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            stmt.setInt(1, destinationAirportId);
+            stmt.setString(2, startDate);
+            stmt.setString(3, endDate);
+            ResultSet rs = stmt.executeQuery();
+
+            rs.last();
+            int rowCount = rs.getRow();
+            rs.beforeFirst();
+
+            Object[][] data = new Object[rowCount][6]; // 6 columns
+            int rowIndex = 0;
+
+            while (rs.next()) {
+                data[rowIndex][0] = rs.getInt("number_of_passengers");
+                data[rowIndex][1] = rs.getInt("number_of_flights");
+                data[rowIndex][2] = rs.getInt("flights_with_delay");
+                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
+                data[rowIndex][4] = rs.getInt("successful_flights");
+                data[rowIndex][5] = rs.getDouble("total_payments");
+                rowIndex++;
+            }
+            return data;
+        }
+    }
+
     
 
     public Object[][] passengerCompanyTraffic(String companyName, String startDate, String endDate, Connection connection) throws SQLException {
