@@ -593,7 +593,7 @@ public class CompanyManagementFrame extends JFrame {
                 // Construct the final query
                 String query = whereClause.length() > 0 ? whereClause.toString() : null;
                 List<Object[]> results;
-                List<String> columnNames = List.of("Company ID", "Company Name", "Date Founded", "Contact Number");
+                List<String> columnNames = List.of("company_id", "company_name", "date_founded", "contact_number");
 
                 if (query == null || query.isEmpty()) {
                     results = manageRecord.readWithQuery("SELECT * FROM companies");
@@ -862,7 +862,7 @@ public class CompanyManagementFrame extends JFrame {
         }
 
         // Columns for the table
-        String[] columnNames = {"Company ID", "Name", "Contact Number"};
+        String[] columnNames = {"company_id", "name", "contact_number"};
 
         // Convert List<Object[]> to a 2D array for the table data
         Object[][] data = new Object[companyData.size()][3];

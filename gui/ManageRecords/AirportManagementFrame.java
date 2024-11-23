@@ -855,7 +855,7 @@ public class AirportManagementFrame extends JFrame {
         }
 
         // Columns for the table
-        String[] columnNames = {"Airport ID", "Name", "Country", "Company"};
+        String[] columnNames = {"airport_id", "name", "countr_name", "company_name"};
 
         // Convert List<Object[]> to a 2D array for the table data
         Object[][] data = new Object[airportData.size()][4];
