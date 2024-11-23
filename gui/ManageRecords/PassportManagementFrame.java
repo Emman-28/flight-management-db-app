@@ -814,12 +814,12 @@ public class PassportManagementFrame extends JFrame {
         JLabel middleNameLabel = new JLabel("Middle Name:");
         JTextField middleNameField = new JTextField();
         middleNameField.setToolTipText("Enter a 25-character Name");
-        JCheckBox middleNameLikeToggle = new JCheckBox("Include Similar Entries");
+        JCheckBox middleNameLikeToggle = new JCheckBox("Include Partial Matches");
 
         JLabel lastNameLabel = new JLabel("Last Name:");
         JTextField lastNameField = new JTextField();
         lastNameField.setToolTipText("Enter a 25-character Name");
-        JCheckBox lastNameLikeToggle = new JCheckBox("Include Similar Entries");
+        JCheckBox lastNameLikeToggle = new JCheckBox("Include Partial Matches");
     
         // Issue Date Fields
         String[] days = new String[32];
@@ -891,7 +891,7 @@ public class PassportManagementFrame extends JFrame {
         JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
         JTextField placeOfIssueField = new JTextField();
         placeOfIssueField.setToolTipText("Enter a 25-character Place of Issue");
-        JCheckBox placeOfIssueLikeToggle = new JCheckBox("Include Similar Entries");
+        JCheckBox placeOfIssueLikeToggle = new JCheckBox("Include Partial Matches");
     
         inputPanel.add(passportIdLabel);
         inputPanel.add(passportIdField);
