@@ -4,6 +4,8 @@ import gui.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.event.*;
 import operations.*;
@@ -380,13 +382,497 @@ public class CompanyManagementFrame extends JFrame {
         }
     }
 
-    // Placeholder method for Read Record Dialog
     private void showReadRecordDialog() {
-        // Placeholder for Read Record Dialog
+        JDialog dialog = new JDialog(this, "Read Company Records", true);
+        dialog.setSize(300, 200);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton filterButton = new JButton("Use Filters");
+        JButton inputButton = new JButton("Use Input");
+        JButton cancelButton = new JButton("Cancel");
+
+        filterButton.setPreferredSize(new Dimension(200, 35));
+        inputButton.setPreferredSize(new Dimension(200, 35));
+        cancelButton.setPreferredSize(new Dimension(200, 35));
+
+        filterButton.addActionListener(e -> {
+            dialog.dispose();
+            showFilterDialog();  // This will call the company filter dialog
+        });
+
+        inputButton.addActionListener(e -> {
+            dialog.dispose();
+            showReadInputDialog();  // This will call the company input dialog
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(filterButton);
+        buttonPanel.add(inputButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(buttonPanel, BorderLayout.CENTER);
+        dialog.setVisible(true);
     }
 
-    // Placeholder method for Delete Record Dialog
+    private void showReadInputDialog() {
+        JDialog dialog = new JDialog(this, "Read Company Record via Input", true);
+        dialog.setSize(1000, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(6, 2, 10, 10)); // Adjusted rows for the new toggle
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Labels and text fields
+        JLabel companyIdLabel = new JLabel("Company ID (Single or Range, e.g., 1 or 1-10):");
+        JTextField companyIdField = new JTextField();
+
+        JLabel companyNameLabel = new JLabel("Company Name (Single or Comma-separated, e.g., ABC Corp, XYZ Ltd):");
+        JTextField companyNameField = new JTextField();
+
+        // Toggle for LIKE query
+        JCheckBox likeQueryToggle = new JCheckBox("Use LIKE for Company Name (Supports Wildcards, e.g., %Corp%)");
+
+        JLabel dateFoundedLabel = new JLabel("Date Founded (Text or Range, e.g., 2000, 1990-2000, May):");
+        JTextField dateFoundedField = new JTextField();
+
+        JLabel contactNumberLabel = new JLabel("Contact Number (Text):");
+        JTextField contactNumberField = new JTextField();
+
+        inputPanel.add(companyIdLabel);
+        inputPanel.add(companyIdField);
+        inputPanel.add(companyNameLabel);
+        inputPanel.add(companyNameField);
+        inputPanel.add(new JLabel()); // Empty label for spacing
+        inputPanel.add(likeQueryToggle); // Add toggle below the Company Name field
+        inputPanel.add(dateFoundedLabel);
+        inputPanel.add(dateFoundedField);
+        inputPanel.add(contactNumberLabel);
+        inputPanel.add(contactNumberField);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton searchButton = new JButton("Search");
+        JButton cancelButton = new JButton("Cancel");
+
+        searchButton.addActionListener(e -> {
+            try {
+                // Build WHERE clause based on input fields
+                StringBuilder whereClause = new StringBuilder();
+
+                // Parse Company ID (single or range)
+                if (!companyIdField.getText().trim().isEmpty()) {
+                    String companyIdInput = companyIdField.getText().trim();
+                    if (companyIdInput.contains("-")) {
+                        String[] range = companyIdInput.split("-");
+                        whereClause.append("company_id BETWEEN ")
+                                .append(range[0].trim())
+                                .append(" AND ")
+                                .append(range[1].trim())
+                                .append(" AND ");
+                    } else {
+                        whereClause.append("company_id = ").append(companyIdInput).append(" AND ");
+                    }
+                }
+
+                // Parse Company Name with optional LIKE query
+                if (!companyNameField.getText().trim().isEmpty()) {
+                    String[] companyNames = companyNameField.getText().trim().split(",");
+                    whereClause.append("(");
+                    for (String name : companyNames) {
+                        if (likeQueryToggle.isSelected()) {
+                            whereClause.append("name LIKE '").append(name.trim()).append("' OR ");
+                        } else {
+                            whereClause.append("name = '").append(name.trim()).append("' OR ");
+                        }
+                    }
+                    whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
+                    whereClause.append(") AND ");
+                }
+
+                // Parse Date Founded (single or range or month)
+                if (!dateFoundedField.getText().trim().isEmpty()) {
+                    String dateFoundedInput = dateFoundedField.getText().trim();
+
+                    if (dateFoundedInput.contains("-")) { // Range of years (YYYY-YYYY)
+                        String[] range = dateFoundedInput.split("-");
+                        whereClause.append("date_founded BETWEEN '")
+                                .append(range[0].trim())
+                                .append("-01-01' AND '")
+                                .append(range[1].trim())
+                                .append("-12-31' AND ");
+                    } else if (dateFoundedInput.matches("\\d{4}")) { // Single year (YYYY)
+                        whereClause.append("date_founded BETWEEN '")
+                                .append(dateFoundedInput)
+                                .append("-01-01' AND '")
+                                .append(dateFoundedInput)
+                                .append("-12-31' AND ");
+                    } else if (dateFoundedInput.matches("\\d{4}-\\d{2}-\\d{2}")) { // Exact date (YYYY-MM-DD)
+                        whereClause.append("date_founded = '")
+                                .append(dateFoundedInput)
+                                .append("' AND ");
+                    } else { // Month name (e.g., January, March)
+                        String month = dateFoundedInput.trim().toLowerCase();
+                        whereClause.append("MONTHNAME(date_founded) = '")
+                                .append(month.substring(0, 1).toUpperCase())
+                                .append(month.substring(1)) // Capitalize the first letter
+                                .append("' AND ");
+                    }
+                }
+
+                // Parse Contact Number
+                if (!contactNumberField.getText().trim().isEmpty()) {
+                    whereClause.append("contact_number = '").append(contactNumberField.getText().trim()).append("' AND ");
+                }
+
+                // Remove the last " AND " if the clause exists
+                if (whereClause.length() > 0) {
+                    whereClause.setLength(whereClause.length() - 5);
+                }
+
+                // Construct the final query
+                String query = whereClause.length() > 0 ? whereClause.toString() : null;
+                List<Object[]> results;
+                List<String> columnNames = List.of("Company ID", "Company Name", "Date Founded", "Contact Number");
+
+                if (query == null || query.isEmpty()) {
+                    results = manageRecord.readWithQuery("SELECT * FROM companies");
+                } else {
+                    results = manageRecord.readWithQuery("SELECT * FROM companies WHERE " + query);
+                }
+
+                // Handle case with no matching records
+                if (results.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "No records found matching the query conditions.", "No Records Found", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Prepare data for JTable
+                    Object[][] data = new Object[results.size()][columnNames.size()];
+                    for (int i = 0; i < results.size(); i++) {
+                        data[i] = results.get(i);
+                    }
+
+                    // Create JTable for displaying results
+                    JTable resultTable = new JTable(data, columnNames.toArray());
+                    JScrollPane scrollPane = new JScrollPane(resultTable);
+                    JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(searchButton);
+        buttonPanel.add(cancelButton);
+
+        dialog.add(inputPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void showFilterDialog() {
+        // Create dialog with appropriate title and size
+        JDialog dialog = new JDialog(this, "Read Company Records via Filters", true);
+        dialog.setSize(700, 450); // Adjust size as needed
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        // Create a panel for the selections
+        JPanel selectionPanel = new JPanel();
+        selectionPanel.setLayout(new GridBagLayout()); // Use GridBagLayout for better control
+        GridBagConstraints gbc = new GridBagConstraints();
+        selectionPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Set GridBagLayout constraints
+        gbc.insets = new Insets(5, 10, 5, 10); // Adds padding between components
+        gbc.anchor = GridBagConstraints.WEST; // Align components to the left
+
+        // Labels for information and order by
+        JLabel includeLabel = new JLabel("<html><body>Select Company Information to Include (min. 2):</body></html>");
+        JLabel orderByLabel = new JLabel("Order By (max. 1):");
+        JLabel orderAdviceLabel = new JLabel("<html><body><i>Note: Default arrangement is ascending.</i></body></html>");
+
+        // Positioning labels
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        selectionPanel.add(includeLabel, gbc);
+        gbc.gridx = 2; gbc.gridwidth = 2;
+        selectionPanel.add(orderByLabel, gbc);
+        gbc.gridy = 5; gbc.gridwidth = 2;
+        selectionPanel.add(orderAdviceLabel, gbc);
+
+        // Info checkboxes
+        JCheckBox companyIdCheckbox = new JCheckBox("Company ID");
+        JCheckBox companyNameCheckbox = new JCheckBox("Company Name");
+        JCheckBox dateFoundedCheckbox = new JCheckBox("Date Founded");
+        JCheckBox contactNumberCheckbox = new JCheckBox("Contact Number");
+
+        // "All" checkbox placed below the other checkboxes
+        JCheckBox allCheckbox = new JCheckBox("All");
+
+        // Order by checkboxes (initially disabled)
+        JCheckBox orderByCompanyId = new JCheckBox("Company ID");
+        JCheckBox orderByCompanyName = new JCheckBox("Company Name");
+        JCheckBox orderByDateFounded = new JCheckBox("Date Founded");
+        JCheckBox orderByContactNumber = new JCheckBox("Contact Number");
+        JCheckBox descendingOrderCheckbox = new JCheckBox("Descending Order"); // New checkbox
+
+        // Initially disable order-by checkboxes
+        orderByCompanyId.setEnabled(false);
+        orderByCompanyName.setEnabled(false);
+        orderByDateFounded.setEnabled(false);
+        orderByContactNumber.setEnabled(false);
+        descendingOrderCheckbox.setEnabled(false);
+
+        // Add info checkboxes to the panel
+        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+        selectionPanel.add(companyIdCheckbox, gbc);
+        gbc.gridy = 2;
+        selectionPanel.add(companyNameCheckbox, gbc);
+        gbc.gridy = 3;
+        selectionPanel.add(dateFoundedCheckbox, gbc);
+        gbc.gridy = 4;
+        selectionPanel.add(contactNumberCheckbox, gbc);
+
+        // Add order-by checkboxes to the panel
+        gbc.gridx = 2; gbc.gridy = 1;
+        selectionPanel.add(orderByCompanyId, gbc);
+        gbc.gridy = 2;
+        selectionPanel.add(orderByCompanyName, gbc);
+        gbc.gridy = 3;
+        selectionPanel.add(orderByDateFounded, gbc);
+        gbc.gridy = 4;
+        selectionPanel.add(orderByContactNumber, gbc);
+        gbc.gridy = 6; // Positioning the descending order checkbox
+        selectionPanel.add(descendingOrderCheckbox, gbc);
+
+        // Add "All" checkbox
+        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
+        selectionPanel.add(allCheckbox, gbc);
+
+        // Read and Cancel Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton readButton = new JButton("Read");
+        JButton cancelButton = new JButton("Cancel");
+        readButton.setEnabled(false);
+
+        // Logic to enable/disable buttons and checkboxes
+        ActionListener checkboxListener = e -> {
+            int selectedInfoCount = (companyIdCheckbox.isSelected() ? 1 : 0) +
+                    (companyNameCheckbox.isSelected() ? 1 : 0) +
+                    (dateFoundedCheckbox.isSelected() ? 1 : 0) +
+                    (contactNumberCheckbox.isSelected() ? 1 : 0);
+
+            int selectedOrderByCount = (orderByCompanyId.isSelected() ? 1 : 0) +
+                    (orderByCompanyName.isSelected() ? 1 : 0) +
+                    (orderByDateFounded.isSelected() ? 1 : 0) +
+                    (orderByContactNumber.isSelected() ? 1 : 0);
+
+            // Enable/disable the Read button based on selection criteria
+            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount == 1);
+
+            // Enable order-by checkboxes only if corresponding info checkbox is selected
+            orderByCompanyId.setEnabled(companyIdCheckbox.isSelected());
+            orderByCompanyName.setEnabled(companyNameCheckbox.isSelected());
+            orderByDateFounded.setEnabled(dateFoundedCheckbox.isSelected());
+            orderByContactNumber.setEnabled(contactNumberCheckbox.isSelected());
+
+            // Untick order-by checkboxes if corresponding info checkbox is unticked
+            if (!companyIdCheckbox.isSelected()) orderByCompanyId.setSelected(false);
+            if (!companyNameCheckbox.isSelected()) orderByCompanyName.setSelected(false);
+            if (!dateFoundedCheckbox.isSelected()) orderByDateFounded.setSelected(false);
+            if (!contactNumberCheckbox.isSelected()) orderByContactNumber.setSelected(false);
+
+            // Enable descending order checkbox if any order-by checkbox is selected
+            descendingOrderCheckbox.setEnabled(selectedOrderByCount > 0);
+
+            // Update "All" checkbox status based on the other checkboxes
+            allCheckbox.setSelected(companyIdCheckbox.isSelected() &&
+                    companyNameCheckbox.isSelected() &&
+                    dateFoundedCheckbox.isSelected() &&
+                    contactNumberCheckbox.isSelected());
+        };
+
+        // Add listeners to all checkboxes
+        companyIdCheckbox.addActionListener(checkboxListener);
+        companyNameCheckbox.addActionListener(checkboxListener);
+        dateFoundedCheckbox.addActionListener(checkboxListener);
+        contactNumberCheckbox.addActionListener(checkboxListener);
+        orderByCompanyId.addActionListener(checkboxListener);
+        orderByCompanyName.addActionListener(checkboxListener);
+        orderByDateFounded.addActionListener(checkboxListener);
+        orderByContactNumber.addActionListener(checkboxListener);
+
+        // All checkbox logic
+        allCheckbox.addActionListener(e -> {
+            boolean isSelected = allCheckbox.isSelected();
+            companyIdCheckbox.setSelected(isSelected);
+            companyNameCheckbox.setSelected(isSelected);
+            dateFoundedCheckbox.setSelected(isSelected);
+            contactNumberCheckbox.setSelected(isSelected);
+
+            // Disable other checkboxes when "All" is selected
+            companyIdCheckbox.setEnabled(!isSelected);
+            companyNameCheckbox.setEnabled(!isSelected);
+            dateFoundedCheckbox.setEnabled(!isSelected);
+            contactNumberCheckbox.setEnabled(!isSelected);
+
+            // Update the checkbox listener manually for all info checkboxes
+            checkboxListener.actionPerformed(null);
+        });
+
+        // Read Button Logic
+        readButton.addActionListener(e -> {
+            List<String> columns = new ArrayList<>();
+
+            // Check selected columns for company info
+            if (companyIdCheckbox.isSelected()) columns.add("company_id");
+            if (companyNameCheckbox.isSelected()) columns.add("name");
+            if (dateFoundedCheckbox.isSelected()) columns.add("date_founded");
+            if (contactNumberCheckbox.isSelected()) columns.add("contact_number");
+
+            // Construct SELECT query
+            StringBuilder query = new StringBuilder("SELECT ");
+            query.append(String.join(", ", columns)).append(" FROM companies");
+
+            // Add ORDER BY clause if selected
+            if (orderByCompanyId.isSelected()) query.append(" ORDER BY company_id");
+            else if (orderByCompanyName.isSelected()) query.append(" ORDER BY name");
+            else if (orderByDateFounded.isSelected()) query.append(" ORDER BY date_founded");
+            else if (orderByContactNumber.isSelected()) query.append(" ORDER BY contact_number");
+
+            // Add descending order if checkbox is selected
+            if (descendingOrderCheckbox.isSelected()) query.append(" DESC");
+
+            try {
+                // Execute query
+                List<Object[]> results = manageRecord.readWithQuery(query.toString());
+
+                // Prepare data for JTable
+                String[] columnNames = columns.toArray(new String[0]);
+                Object[][] data = new Object[results.size()][columns.size()];
+                for (int i = 0; i < results.size(); i++) {
+                    Object[] row = results.get(i);
+                    for (int j = 0; j < row.length; j++) {
+                        data[i][j] = row[j];
+                    }
+                }
+
+                // Display results in a JTable
+                JTable resultTable = new JTable(data, columnNames);
+                JScrollPane scrollPane = new JScrollPane(resultTable);
+                JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialog, "Error executing query: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Cancel Button Logic
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Add buttons to the button panel
+        buttonPanel.add(readButton);
+        buttonPanel.add(cancelButton);
+
+        // Add panels to the dialog
+        dialog.add(selectionPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
     private void showDeleteRecordDialog() {
-        // Placeholder for Delete Record Dialog
+        JDialog dialog = new JDialog(this, "Delete Company Record", true);
+        dialog.setSize(600, 400);
+        dialog.setLayout(new BorderLayout());
+        dialog.setLocationRelativeTo(this);
+
+        // Panel for the table
+        JPanel tablePanel = new JPanel(new BorderLayout());
+
+        // SQL query to fetch company data
+        String query = "SELECT company_id, name, contact_number FROM companies";
+
+        // Fetch company records using the readWithQuery method
+        List<Object[]> companyData;
+        try {
+            companyData = manageRecord.readWithQuery(query);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(dialog, "Error fetching company records: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Columns for the table
+        String[] columnNames = {"Company ID", "Name", "Contact Number"};
+
+        // Convert List<Object[]> to a 2D array for the table data
+        Object[][] data = new Object[companyData.size()][3];
+        for (int i = 0; i < companyData.size(); i++) {
+            data[i] = companyData.get(i);
+        }
+
+        // Create the table to display company records
+        JTable companyTable = new JTable(data, columnNames);
+        companyTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Allow single row selection
+        JScrollPane tableScrollPane = new JScrollPane(companyTable);
+
+        // Add the table to the tablePanel
+        tablePanel.add(tableScrollPane, BorderLayout.CENTER);
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        // Create the Delete and Cancel buttons
+        JButton deleteButton = new JButton("Delete");
+        JButton cancelButton = new JButton("Cancel");
+
+        deleteButton.setEnabled(false); // Initially disabled, will be enabled when a row is selected
+
+        // Enable delete button when a row is selected
+        companyTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && companyTable.getSelectedRow() != -1) {
+                deleteButton.setEnabled(true);
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            int selectedRow = companyTable.getSelectedRow();
+            if (selectedRow != -1) {
+                Object companyIdObj = companyTable.getValueAt(selectedRow, 0); // Get the company_id from selected row
+                String companyId = companyIdObj.toString(); // Convert it to String
+
+                int confirmation = JOptionPane.showConfirmDialog(dialog,
+                        "Are you sure you want to delete Company ID: " + companyId + "?",
+                        "Confirm Deletion", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    try {
+                        // Build the condition string to match the selected company_id
+                        String condition = "company_id = '" + companyId + "'";
+                        // Call delete method from manageRecord class with the condition
+                        manageRecord.delete("companies", condition);
+                        JOptionPane.showMessageDialog(dialog, "Company deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        dialog.dispose();
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(dialog, "Error deleting company: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Add buttons to buttonPanel
+        buttonPanel.add(deleteButton);
+        buttonPanel.add(cancelButton);
+
+        // Add panels to the dialog
+        dialog.add(tablePanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 }

@@ -282,7 +282,7 @@ public class AirportManagementFrame extends JFrame {
     private void showFilterDialog() {
         // Create dialog with smaller size
         JDialog dialog = new JDialog(this, "Read Records via Filters", true);
-        dialog.setSize(600, 450);  // Adjusted size for new descending order feature
+        dialog.setSize(700, 450);  // Adjusted size for new descending order feature
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
@@ -306,7 +306,7 @@ public class AirportManagementFrame extends JFrame {
         selectionPanel.add(includeLabel, gbc);
         gbc.gridx = 2; gbc.gridwidth = 2;
         selectionPanel.add(orderByLabel, gbc);
-        gbc.gridy = 6; gbc.gridwidth = 2;
+        gbc.gridy = 5; gbc.gridwidth = 2;
         selectionPanel.add(orderAdviceLabel, gbc);
 
         // Info checkboxes
@@ -351,7 +351,7 @@ public class AirportManagementFrame extends JFrame {
         selectionPanel.add(orderByCountryName, gbc);
         gbc.gridy = 4;
         selectionPanel.add(orderByCompanyId, gbc);
-        gbc.gridy = 5; // Positioning the descending order checkbox
+        gbc.gridy = 6; // Positioning the descending order checkbox
         selectionPanel.add(descendingOrderCheckbox, gbc);
 
         // Add "All" checkbox
