@@ -67,6 +67,7 @@ public class ManageRecordsFrame {
         // Options section (Buttons)
         JButton airportButton = new JButton("Airport Records");
         JButton flightButton = new JButton("Flight Records");
+        JButton flightLogButton = new JButton("Flight Log Management");
         JButton passportButton = new JButton("Passport Records");
         JButton companyButton = new JButton("Company Records");
         JButton aircraftButton = new JButton("Aircraft Records");
@@ -80,6 +81,10 @@ public class ManageRecordsFrame {
         flightButton.setPreferredSize(buttonSize);
         flightButton.setMaximumSize(buttonSize);
         flightButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        flightLogButton.setPreferredSize(buttonSize);
+        flightLogButton.setMaximumSize(buttonSize);
+        flightLogButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         passportButton.setPreferredSize(buttonSize);
         passportButton.setMaximumSize(buttonSize);
@@ -101,6 +106,8 @@ public class ManageRecordsFrame {
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(flightButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(flightLogButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(passportButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
@@ -119,8 +126,14 @@ public class ManageRecordsFrame {
 
         flightButton.addActionListener(e -> {
             frame.dispose();
-            //new FlightManagementFrame(connection, record, transaction, report); // Redirect to Flight Management
+            new FlightManagementFrame(connection, record, transaction, report); // Redirect to Flight Management
         });
+        
+        flightLogButton.addActionListener(e -> {
+            frame.dispose();
+            new FlightLogManagementFrame(connection, record, transaction, report); // Redirect to Flight Log Management
+        });
+
 
         passportButton.addActionListener(e -> {
             frame.dispose();
