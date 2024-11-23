@@ -12,11 +12,11 @@ import operations.FlightManager;
 import operations.GenerateReport;
 import operations.ManageRecord;
 
-public class FlightManagementFrame extends JFrame {
+public class FlightLogManagementFrame extends JFrame {
 
     private final FlightManager flightManager;
 
-    public FlightManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
+    public FlightLogManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         setTitle("Flight Management");
         setSize(800, 500);
         setLocationRelativeTo(null);
