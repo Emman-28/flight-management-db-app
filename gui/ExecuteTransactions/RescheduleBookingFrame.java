@@ -7,6 +7,14 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.List;
+import java.util.Random;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import operations.*;
@@ -126,6 +134,14 @@ public class RescheduleBookingFrame extends JFrame {
             }
         });
 
+        // Add this inside your constructor, after initializing the bookingComboBox
+        bookingComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadAvailableFlights();  // Refresh flights based on selected booking
+            }
+        });
+
         // Add the main panel to the frame and set it visible
         add(mainPanel);
         setVisible(true);
@@ -143,19 +159,63 @@ public class RescheduleBookingFrame extends JFrame {
         }
     }
 
-    // Method to load available flights for rescheduling
     private void loadAvailableFlights() {
-        String query = "SELECT flight_id, aircraft_id FROM flights WHERE seating_capacity > 0";
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
-            while (rs.next()) {
-                flightComboBox.addItem(rs.getString("flight_id") + " - " + rs.getString("aircraft_id"));
+        String selectedBookingId = (String) bookingComboBox.getSelectedItem();
+        if (selectedBookingId == null) {
+            statusLabel.setText("Please select a booking.");
+            return;
+        }
+
+        // Query to fetch origin and destination country names for the selected booking
+        String getCountriesQuery = "SELECT a1.country_name AS origin_country, a2.country_name AS dest_country "
+                                  + "FROM bookings b "
+                                  + "JOIN airports a1 ON b.airport_id = a1.airport_id "
+                                  + "JOIN flights f ON b.flight_id = f.flight_id "
+                                  + "JOIN airports a2 ON f.dest_airport_id = a2.airport_id "
+                                  + "WHERE b.booking_id = ?";
+
+        try (PreparedStatement getCountriesStmt = connection.prepareStatement(getCountriesQuery)) {
+            getCountriesStmt.setString(1, selectedBookingId);
+            try (ResultSet rs = getCountriesStmt.executeQuery()) {
+                if (rs.next()) {
+                    String originCountry = rs.getString("origin_country");
+                    String destCountry = rs.getString("dest_country");
+
+                    // Query to fetch available flights where origin and destination countries match
+                    String flightsQuery = "SELECT f.flight_id, f.aircraft_id "
+                                        + "FROM flights f "
+                                        + "JOIN airports a1 ON f.origin_airport_id = a1.airport_id "
+                                        + "JOIN airports a2 ON f.dest_airport_id = a2.airport_id "
+                                        + "WHERE a1.country_name = ? AND a2.country_name = ? "
+                                        + "AND f.seating_capacity > 0";
+
+                    try (PreparedStatement flightsStmt = connection.prepareStatement(flightsQuery)) {
+                        flightsStmt.setString(1, originCountry);  // Set origin country
+                        flightsStmt.setString(2, destCountry);   // Set destination country
+
+                        try (ResultSet flightRs = flightsStmt.executeQuery()) {
+                            // Clear existing items in flightComboBox
+                            flightComboBox.removeAllItems();
+
+                            // Add matching flights to the combo box
+                            while (flightRs.next()) {
+                                String flightDetails = flightRs.getString("flight_id") + " - " + flightRs.getString("aircraft_id");
+                                flightComboBox.addItem(flightDetails);
+                            }
+                        } catch (SQLException e) {
+                            statusLabel.setText("Error loading flights: " + e.getMessage());
+                        }
+                    }
+
+                } else {
+                    statusLabel.setText("Booking details not found.");
+                }
             }
         } catch (SQLException e) {
-            statusLabel.setText("Error loading flights: " + e.getMessage());
+            statusLabel.setText("Error loading booking details: " + e.getMessage());
         }
     }
 
-    // Method to process rescheduling of the booking
     private void processReschedule() {
         String selectedBookingId = (String) bookingComboBox.getSelectedItem();
         String selectedFlight = (String) flightComboBox.getSelectedItem();
@@ -163,60 +223,113 @@ public class RescheduleBookingFrame extends JFrame {
             statusLabel.setText("Please select both a booking and a flight.");
             return;
         }
-
+    
         String[] flightDetails = selectedFlight.split(" - ");
         String newFlightId = flightDetails[0];
-
-        String fetchDetailsQuery = "SELECT flight_id FROM bookings WHERE booking_id = ?";
+    
+        // Queries for fetching and updating booking and tickets
+        String fetchDetailsQuery = "SELECT flight_id, passenger_id FROM bookings WHERE booking_id = ?";
+        String deleteOldTicketQuery = "DELETE FROM tickets WHERE booking_id = ?";
+        String insertNewTicketQuery = "INSERT INTO tickets (passenger_id, booking_id, seat_number, price) VALUES (?, ?, ?, ?)";
         String updateBookingQuery = "UPDATE bookings SET flight_id = ? WHERE booking_id = ?";
         String updateOldFlightQuery = "UPDATE flights SET seating_capacity = seating_capacity + 1 WHERE flight_id = ?";
         String updateNewFlightQuery = "UPDATE flights SET seating_capacity = seating_capacity - 1 WHERE flight_id = ?";
-
+    
         try (PreparedStatement fetchStmt = connection.prepareStatement(fetchDetailsQuery);
+             PreparedStatement deleteOldTicketStmt = connection.prepareStatement(deleteOldTicketQuery);
+             PreparedStatement insertNewTicketStmt = connection.prepareStatement(insertNewTicketQuery);
              PreparedStatement updateBookingStmt = connection.prepareStatement(updateBookingQuery);
              PreparedStatement updateOldFlightStmt = connection.prepareStatement(updateOldFlightQuery);
              PreparedStatement updateNewFlightStmt = connection.prepareStatement(updateNewFlightQuery)) {
-
-            // Start transaction
-            connection.setAutoCommit(false);
-
-            // Fetch old flight_id for the booking
+    
+            connection.setAutoCommit(false); // Start transaction
+    
+            // Fetch current flight and passenger details
             fetchStmt.setString(1, selectedBookingId);
             ResultSet rs = fetchStmt.executeQuery();
-            if (!rs.next()) {
-                throw new SQLException("Booking ID not found.");
+            if (rs.next()) {
+                String oldFlightId = rs.getString("flight_id");
+                String passengerId = rs.getString("passenger_id");
+    
+                // Query to get the price of the old ticket
+                String getTicketPriceQuery = "SELECT price FROM tickets WHERE booking_id = ? AND passenger_id = ?";
+                double price = 0;
+                try (PreparedStatement priceStmt = connection.prepareStatement(getTicketPriceQuery)) {
+                    priceStmt.setString(1, selectedBookingId);
+                    priceStmt.setString(2, passengerId);
+    
+                    ResultSet priceRs = priceStmt.executeQuery();
+                    if (priceRs.next()) {
+                        price = priceRs.getDouble("price");
+                    } else {
+                        statusLabel.setText("No ticket found for the given booking and passenger.");
+                        connection.rollback();
+                        return;
+                    }
+                }
+    
+                // Delete old ticket
+                deleteOldTicketStmt.setString(1, selectedBookingId);
+                deleteOldTicketStmt.executeUpdate();
+    
+                // Insert new ticket with dynamically assigned seat number
+                String seatNumber = getAvailableSeat(); // Get available seat for the new flight
+                if (seatNumber == null) {
+                    statusLabel.setText("No available seats on the new flight.");
+                    connection.rollback(); // Rollback transaction on failure
+                    return;
+                }
+    
+                insertNewTicketStmt.setString(1, passengerId);  // Passenger ID
+                insertNewTicketStmt.setString(2, selectedBookingId); // Booking ID
+                insertNewTicketStmt.setString(3, seatNumber); // Seat number
+                insertNewTicketStmt.setDouble(4, price); // Price
+                int rowsInserted = insertNewTicketStmt.executeUpdate();
+                if (rowsInserted == 0) {
+                    statusLabel.setText("Error inserting new ticket.");
+                    connection.rollback();
+                    return;
+                }
+    
+                // Update booking with new flight
+                updateBookingStmt.setString(1, newFlightId);
+                updateBookingStmt.setString(2, selectedBookingId);
+                updateBookingStmt.executeUpdate();
+    
+                // Update flight capacities
+                updateOldFlightStmt.setString(1, oldFlightId);
+                updateOldFlightStmt.executeUpdate();
+                updateNewFlightStmt.setString(1, newFlightId);
+                updateNewFlightStmt.executeUpdate();
+    
+                connection.commit(); // Commit transaction
+                statusLabel.setText("Booking rescheduled successfully.");
             }
-            String oldFlightId = rs.getString("flight_id");
-
-            // Update booking to the new flight
-            updateBookingStmt.setString(1, newFlightId);
-            updateBookingStmt.setString(2, selectedBookingId);
-            updateBookingStmt.executeUpdate();
-
-            // Update old flight seating capacity
-            updateOldFlightStmt.setString(1, oldFlightId);
-            updateOldFlightStmt.executeUpdate();
-
-            // Update new flight seating capacity
-            updateNewFlightStmt.setString(1, newFlightId);
-            updateNewFlightStmt.executeUpdate();
-
-            // Commit transaction
-            connection.commit();
-            statusLabel.setText("Booking rescheduled successfully.");
         } catch (SQLException e) {
+            statusLabel.setText("Error rescheduling booking: " + e.getMessage());
             try {
-                connection.rollback();
-                statusLabel.setText("Reschedule failed: " + e.getMessage());
+                connection.rollback(); // Rollback on failure
             } catch (SQLException rollbackEx) {
-                statusLabel.setText("Reschedule failed and rollback error: " + rollbackEx.getMessage());
-            }
-        } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                statusLabel.setText("Error resetting auto-commit: " + e.getMessage());
+                statusLabel.setText("Rollback error: " + rollbackEx.getMessage());
             }
         }
+    }
+    
+    // Helper method to get the next available seat number for the new flight
+    public String getAvailableSeat() {
+        Random random = new Random();
+        
+        // Define the number of rows and seats per row (e.g., 30 rows and 6 seats per row)
+        int rows = 30;
+        char[] seats = {'A', 'B', 'C', 'D', 'E', 'F'};
+
+        // Randomly pick a row number between 1 and the maximum number of rows
+        int row = random.nextInt(rows) + 1;
+
+        // Randomly pick a seat letter from the available seat options
+        char seat = seats[random.nextInt(seats.length)];
+
+        // Combine row and seat letter to form the full seat identifier (e.g., 5A, 12C)
+        return row + "" + seat;
     }
 }
