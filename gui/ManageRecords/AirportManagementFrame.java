@@ -496,7 +496,7 @@ public class AirportManagementFrame extends JFrame {
         dialog.setLocationRelativeTo(this);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(7, 2, 10, 10)); // Increased rows for the new toggles
+        inputPanel.setLayout(new GridLayout(6, 2, 10, 10)); // Increased rows for the new toggles
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
@@ -609,7 +609,7 @@ public class AirportManagementFrame extends JFrame {
                 // Construct the final query
                 String query = whereClause.length() > 0 ? whereClause.toString() : null;
                 List<Object[]> results;
-                List<String> columnNames = List.of("Airport ID", "Name", "Country Name", "Company ID");
+                List<String> columnNames = List.of("airport_id", "name", "country_name", "company_id");
 
                 if (query == null || query.isEmpty()) {
                     results = manageRecord.readWithQuery("SELECT * FROM airports");

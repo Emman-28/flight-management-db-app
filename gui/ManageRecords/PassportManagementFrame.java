@@ -152,8 +152,6 @@ public class PassportManagementFrame extends JFrame {
         // name fields
         JLabel idLabel = new JLabel("Passport ID:"); 
         JTextField idField = new JTextField();
-        idField.setEditable(false);
-        idField.setText(String.valueOf(getPassportID()));
 
         JLabel firstNameLabel = new JLabel("First Name (25 chars):");
         JTextField firstNameField = new JTextField();
@@ -392,19 +390,6 @@ public class PassportManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
-    private int getPassportID() {
-        String query = "SELECT MAX(passport_id) AS max_id FROM passports";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            if (rs.next()) {
-                return rs.getInt("max_id") + 1;
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Error fetching next Passport ID: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return 1; // Default to 1 if the table is empty or an error occurs
-    }
-
     private void fillDates(String[] days, String[] months, String[] years) {
         days[0] = "--";
         for(int i = 1; i < 32; i++) {
@@ -582,7 +567,7 @@ public class PassportManagementFrame extends JFrame {
 
     private void showFilterDialog() {
         JDialog dialog = new JDialog(this, "Filter Passport Records", true);
-        dialog.setSize(600, 600);
+        dialog.setSize(600, 650); // Adjusted size for descending order feature
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
     
@@ -632,6 +617,8 @@ public class PassportManagementFrame extends JFrame {
         JCheckBox orderByIssueDate = new JCheckBox("Issue Date");
         JCheckBox orderByExpirationDate = new JCheckBox("Expiration Date");
     
+        JCheckBox descendingOrderCheckbox = new JCheckBox("Descending Order"); // Added descending order checkbox
+    
         // Initially disable order-by checkboxes
         JCheckBox[] orderByCheckboxes = {
             orderByPassportId, orderByFirstName, orderByMiddleName, orderByLastName,
@@ -641,6 +628,7 @@ public class PassportManagementFrame extends JFrame {
         for (JCheckBox checkBox : orderByCheckboxes) {
             checkBox.setEnabled(false);
         }
+        descendingOrderCheckbox.setEnabled(false); // Initially disabled
     
         // Add info checkboxes to the panel
         JCheckBox[] infoCheckboxes = {
@@ -666,6 +654,10 @@ public class PassportManagementFrame extends JFrame {
         gbc.gridx = 0; gbc.gridy = infoCheckboxes.length + 1; gbc.gridwidth = 1;
         selectionPanel.add(allCheckbox, gbc);
     
+        // Add descending order checkbox below order-by checkboxes
+        gbc.gridx = 2; gbc.gridy = infoCheckboxes.length + 2;
+        selectionPanel.add(descendingOrderCheckbox, gbc);
+    
         // Read and Cancel Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton readButton = new JButton("Read");
@@ -690,6 +682,16 @@ public class PassportManagementFrame extends JFrame {
             for (int i = 0; i < infoCheckboxes.length; i++) {
                 orderByCheckboxes[i].setEnabled(infoCheckboxes[i].isSelected());
             }
+    
+            // Untick order-by checkboxes if corresponding info checkbox is unticked
+            for (int i = 0; i < infoCheckboxes.length; i++) {
+                if (!infoCheckboxes[i].isSelected()) {
+                    orderByCheckboxes[i].setSelected(false);
+                }
+            }
+    
+            // Enable descending order checkbox only if one order-by checkbox is selected
+            descendingOrderCheckbox.setEnabled(selectedOrderByCount == 1);
     
             // Update "All" checkbox status
             allCheckbox.setSelected(selectedInfoCount == infoCheckboxes.length);
@@ -730,6 +732,10 @@ public class PassportManagementFrame extends JFrame {
                 }
             }
     
+            if (descendingOrderCheckbox.isSelected()) {
+                query.append(" DESC");
+            }
+    
             try {
                 List<Object[]> results = manageRecord.readWithQuery(query.toString());
                 String[] columnNames = columns.toArray(new String[0]);
@@ -743,7 +749,7 @@ public class PassportManagementFrame extends JFrame {
                 JScrollPane scrollPane = new JScrollPane(resultTable);
                 JOptionPane optionPane = new JOptionPane(scrollPane, JOptionPane.INFORMATION_MESSAGE);
                 JDialog messageDialog = optionPane.createDialog(dialog, "Query Results");
-                messageDialog.setSize(1000, 500); 
+                messageDialog.setSize(1000, 500);
                 messageDialog.setVisible(true);
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(dialog, "Error executing query: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -761,27 +767,33 @@ public class PassportManagementFrame extends JFrame {
         dialog.add(selectionPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
-    }    
-
+    }
+    
     private void showReadInputDialog() {
         JDialog dialog = new JDialog(this, "Read Passport Records via Input", true);
-        dialog.setSize(1000, 600); // Adjusted size to fit all fields
+        dialog.setSize(800, 700); // Adjusted size to fit all fields
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
     
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(10, 2, 10, 10)); // Increased grid size
+        inputPanel.setLayout(new GridLayout(14, 2, 10, 10)); // Increased grid size
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     
         // Labels and text fields for passport attributes
         JLabel passportIdLabel = new JLabel("Passport ID (Single or Range, e.g., 1 or 1-10):");
         JTextField passportIdField = new JTextField();
+
         JLabel firstNameLabel = new JLabel("First Name:");
         JTextField firstNameField = new JTextField();
+        JCheckBox firstNameLikeToggle = new JCheckBox("Include Similar Entries");
+
         JLabel middleNameLabel = new JLabel("Middle Name:");
         JTextField middleNameField = new JTextField();
+        JCheckBox middleNameLikeToggle = new JCheckBox("Include Similar Entries");
+
         JLabel lastNameLabel = new JLabel("Last Name:");
         JTextField lastNameField = new JTextField();
+        JCheckBox lastNameLikeToggle = new JCheckBox("Include Similar Entries");
     
         // Issue Date Fields
         String[] days = new String[32];
@@ -792,6 +804,10 @@ public class PassportManagementFrame extends JFrame {
         JComboBox<String> dayComboBoxBirth = new JComboBox<>(days);
         JComboBox<String> monthComboBoxBirth = new JComboBox<>(months);
         JComboBox<String> yearComboBoxBirth = new JComboBox<>(years);
+
+        dayComboBoxBirth.setPreferredSize(new Dimension(80, 20));
+        monthComboBoxBirth.setPreferredSize(new Dimension(120, 20));
+        yearComboBoxBirth.setPreferredSize(new Dimension(100, 20));
 
         JPanel birthDatePanel = new JPanel();
         birthDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -805,9 +821,9 @@ public class PassportManagementFrame extends JFrame {
         JComboBox<String> monthComboBoxIssue = new JComboBox<>(months);
         JComboBox<String> yearComboBoxIssue = new JComboBox<>(years);
         
-        dayComboBoxIssue.setPreferredSize(new Dimension(80, 30));
-        monthComboBoxIssue.setPreferredSize(new Dimension(120, 30));
-        yearComboBoxIssue.setPreferredSize(new Dimension(100, 30));
+        dayComboBoxIssue.setPreferredSize(new Dimension(80, 20));
+        monthComboBoxIssue.setPreferredSize(new Dimension(120, 20));
+        yearComboBoxIssue.setPreferredSize(new Dimension(100, 20));
 
         JPanel issueDatePanel = new JPanel();
         issueDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -822,9 +838,9 @@ public class PassportManagementFrame extends JFrame {
         JComboBox<String> monthComboBoxExpire = new JComboBox<>(months);
         JComboBox<String> yearComboBoxExpire = new JComboBox<>(years);
     
-        dayComboBoxExpire.setPreferredSize(new Dimension(80, 30));
-        monthComboBoxExpire.setPreferredSize(new Dimension(120, 30));
-        yearComboBoxExpire.setPreferredSize(new Dimension(100, 30));
+        dayComboBoxExpire.setPreferredSize(new Dimension(80, 20));
+        monthComboBoxExpire.setPreferredSize(new Dimension(120, 20));
+        yearComboBoxExpire.setPreferredSize(new Dimension(100, 20));
     
         JPanel expirationDatePanel = new JPanel();
         expirationDatePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -846,17 +862,24 @@ public class PassportManagementFrame extends JFrame {
         JLabel nationalityLabel = new JLabel("Nationality:");
         JComboBox<String> nationalityComboBox = new JComboBox<>(nationalities);
     
-        JLabel placeOfIssueLabel = new JLabel("Place of Issue (Single or Comma-separated):");
+        JLabel placeOfIssueLabel = new JLabel("Place of Issue:");
         JTextField placeOfIssueField = new JTextField();
+        JCheckBox placeOfIssueLikeToggle = new JCheckBox("Include Similar Entries");
     
         inputPanel.add(passportIdLabel);
         inputPanel.add(passportIdField);
         inputPanel.add(firstNameLabel);
         inputPanel.add(firstNameField);
+        inputPanel.add(new JLabel());
+        inputPanel.add(firstNameLikeToggle);
         inputPanel.add(middleNameLabel);
         inputPanel.add(middleNameField);
+        inputPanel.add(new JLabel());
+        inputPanel.add(middleNameLikeToggle);
         inputPanel.add(lastNameLabel);
         inputPanel.add(lastNameField);
+        inputPanel.add(new JLabel());
+        inputPanel.add(lastNameLikeToggle);
         inputPanel.add(birthdateLabel);
         inputPanel.add(birthDatePanel);
         inputPanel.add(genderLabel);
@@ -865,6 +888,8 @@ public class PassportManagementFrame extends JFrame {
         inputPanel.add(nationalityComboBox);
         inputPanel.add(placeOfIssueLabel);
         inputPanel.add(placeOfIssueField);
+        inputPanel.add(new JLabel());
+        inputPanel.add(placeOfIssueLikeToggle);
         inputPanel.add(issueDateLabel);
         inputPanel.add(issueDatePanel);
         inputPanel.add(expirationDateLabel);
@@ -878,7 +903,7 @@ public class PassportManagementFrame extends JFrame {
         searchButton.addActionListener(e -> {
             try {
                 StringBuilder whereClause = new StringBuilder();
-    
+        
                 // Parse Passport ID
                 if (!passportIdField.getText().trim().isEmpty()) {
                     String passportIdInput = passportIdField.getText().trim();
@@ -893,81 +918,99 @@ public class PassportManagementFrame extends JFrame {
                         whereClause.append("passport_id = ").append(passportIdInput).append(" AND ");
                     }
                 }
-    
+        
                 // Parse First Name
                 if (!firstNameField.getText().trim().isEmpty()) {
-                    whereClause.append("first_name = '").append(firstNameField.getText().trim()).append("' AND ");
+                    String firstNameInput = firstNameField.getText().trim();
+                    if (firstNameLikeToggle.isSelected()) {
+                        whereClause.append("first_name LIKE '%").append(firstNameInput).append("%' AND ");
+                    } else {
+                        whereClause.append("first_name = '").append(firstNameInput).append("' AND ");
+                    }
                 }
-    
+        
                 // Parse Middle Name
                 if (!middleNameField.getText().trim().isEmpty()) {
-                    whereClause.append("middle_name = '").append(middleNameField.getText().trim()).append("' AND ");
+                    String middleNameInput = middleNameField.getText().trim();
+                    if (middleNameLikeToggle.isSelected()) {
+                        whereClause.append("middle_name LIKE '%").append(middleNameInput).append("%' AND ");
+                    } else {
+                        whereClause.append("middle_name = '").append(middleNameInput).append("' AND ");
+                    }
                 }
-    
+        
                 // Parse Last Name
                 if (!lastNameField.getText().trim().isEmpty()) {
-                    whereClause.append("last_name = '").append(lastNameField.getText().trim()).append("' AND ");
+                    String lastNameInput = lastNameField.getText().trim();
+                    if (lastNameLikeToggle.isSelected()) {
+                        whereClause.append("last_name LIKE '%").append(lastNameInput).append("%' AND ");
+                    } else {
+                        whereClause.append("last_name = '").append(lastNameInput).append("' AND ");
+                    }
                 }
-    
+        
                 // Parse Birthdate
                 String birthdate = yearComboBoxBirth.getSelectedItem() + "-" + monthComboBoxBirth.getSelectedItem() + "-" + dayComboBoxBirth.getSelectedItem();
-                if (yearComboBoxBirth.getSelectedItem() != "--" && monthComboBoxBirth.getSelectedItem() != "--" &&  dayComboBoxBirth.getSelectedItem() != "--") {
+                if (yearComboBoxBirth.getSelectedItem() != "--" && monthComboBoxBirth.getSelectedItem() != "--" && dayComboBoxBirth.getSelectedItem() != "--") {
                     whereClause.append("birthdate = '").append(birthdate).append("' AND ");
                 }
-
+        
                 // Parse Gender
                 if (genderComboBox.getSelectedItem() != "--") {
                     whereClause.append("sex = '").append(genderComboBox.getSelectedItem()).append("' AND ");
                 }
-    
+        
                 // Parse Nationality
                 if (nationalityComboBox.getSelectedItem() != "Select Nationality") {
                     whereClause.append("nationality = '").append(nationalityComboBox.getSelectedItem()).append("' AND ");
                 }
-    
+        
                 // Parse Place of Issue
                 if (!placeOfIssueField.getText().trim().isEmpty()) {
-                    whereClause.append("place_of_issue = '").append(placeOfIssueField.getText().trim()).append("' AND ");
+                    String placeOfIssueInput = placeOfIssueField.getText().trim();
+                    if (placeOfIssueLikeToggle.isSelected()) {
+                        whereClause.append("place_of_issue LIKE '%").append(placeOfIssueInput).append("%' AND ");
+                    } else {
+                        whereClause.append("place_of_issue = '").append(placeOfIssueInput).append("' AND ");
+                    }
                 }
-
+        
                 // Parse Issue Date
                 String issueDate = yearComboBoxIssue.getSelectedItem() + "-" + monthComboBoxIssue.getSelectedItem() + "-" + dayComboBoxIssue.getSelectedItem();
-                if (yearComboBoxIssue.getSelectedItem() != "--" && monthComboBoxIssue.getSelectedItem() != "--" &&  dayComboBoxIssue.getSelectedItem() != "--") {
+                if (yearComboBoxIssue.getSelectedItem() != "--" && monthComboBoxIssue.getSelectedItem() != "--" && dayComboBoxIssue.getSelectedItem() != "--") {
                     whereClause.append("issue_date = '").append(issueDate).append("' AND ");
                 }
-    
+        
                 // Parse Expiration Date
                 String expirationDate = yearComboBoxExpire.getSelectedItem() + "-" + monthComboBoxExpire.getSelectedItem() + "-" + dayComboBoxExpire.getSelectedItem();
-                if (yearComboBoxExpire.getSelectedItem() != "--" && monthComboBoxExpire.getSelectedItem() != "--" &&  dayComboBoxExpire.getSelectedItem() != "--") {
+                if (yearComboBoxExpire.getSelectedItem() != "--" && monthComboBoxExpire.getSelectedItem() != "--" && dayComboBoxExpire.getSelectedItem() != "--") {
                     whereClause.append("expiration_date = '").append(expirationDate).append("' AND ");
                 }
-
+        
                 // Remove the last " AND " if the clause exists
                 if (whereClause.length() > 0) {
                     whereClause.setLength(whereClause.length() - 5);
                 }
-    
+        
                 // Construct the final query
                 String query = whereClause.length() > 0 ? whereClause.toString() : null;
                 List<Object[]> results;
                 List<String> columnNames = List.of("Passport ID", "First Name", "Middle Name", "Last Name", "Birthdate",
                                                     "Sex", "Nationality", "Place of Issue", "Issue Date", "Expiration Date");
-    
+        
                 // Handle empty query condition
                 if (query == null || query.isEmpty()) {
                     results = manageRecord.readWithQuery("SELECT * FROM passports"); // No filtering
                 } else {
                     results = manageRecord.readWithQuery("SELECT * FROM passports WHERE " + query); // With filtering
                 }
-
-                System.out.println(query);
-    
+        
                 // Prepare data for JTable
                 Object[][] data = new Object[results.size()][columnNames.size()];
                 for (int i = 0; i < results.size(); i++) {
                     data[i] = results.get(i);
                 }
-    
+        
                 // Create JTable to display results
                 JTable resultTable = new JTable(data, columnNames.toArray());
                 JScrollPane scrollPane = new JScrollPane(resultTable);
@@ -978,7 +1021,7 @@ public class PassportManagementFrame extends JFrame {
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-        });
+        });        
     
         cancelButton.addActionListener(e -> dialog.dispose());
     
@@ -1129,7 +1172,7 @@ public class PassportManagementFrame extends JFrame {
     
     private void showDeletePassportDialog() {
         JDialog dialog = new JDialog(this, "Delete Passport Record", true);
-        dialog.setSize(600, 400);
+        dialog.setSize(1000, 400);
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
     
@@ -1149,7 +1192,7 @@ public class PassportManagementFrame extends JFrame {
         }
     
         // Columns for the table
-        String[] columnNames = {"Passport ID", "First Name", "Middle Name", "Last Name", "Date of Birth", "Sex", "Nationality", "Place of Issue", "Issue Date", "Expiration Date"};
+        String[] columnNames = {"passport_id", "first_name", "middle_name", "last_name", "date_of_birth", "sex", "nationality", "place_of_issue", "issue_date", "expiration_date"};
     
         // Convert List<Object[]> to a 2D array for the table data
         Object[][] data = new Object[passportData.size()][10];
