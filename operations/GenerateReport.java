@@ -9,7 +9,7 @@ public class GenerateReport {
         this.connection = connection;
     }
 
-    public Object[][] passengerAirportTraffic(int originAirportId, String startDate, String endDate) throws SQLException {
+     public Object[][] passengerAirportTraffic(int originAirportId, String startDate, String endDate) throws SQLException {
         String query = """
             SELECT 
                 COUNT(DISTINCT b.passenger_id) AS number_of_passengers,
@@ -22,34 +22,36 @@ public class GenerateReport {
             JOIN bookings b ON f.flight_id = b.flight_id
             JOIN tickets t ON b.booking_id = t.booking_id
             WHERE f.origin_airport_id = ?
-              AND b.booking_date BETWEEN ? AND ?
-              AND b.booking_status != 'Refunded'
-              AND f.flight_status != 'Cancelled';
+              AND f.expected_departure_time BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded';
         """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+    
+        System.out.println("Executing passengerAirportTraffic");
+        System.out.println("Query: " + query);
+        System.out.println("Parameters: originAirportId=" + originAirportId + ", startDate=" + startDate + ", endDate=" + endDate);
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, originAirportId);
             stmt.setString(2, startDate);
             stmt.setString(3, endDate);
+    
             ResultSet rs = stmt.executeQuery();
-
-            rs.last();
-            int rowCount = rs.getRow();
-            rs.beforeFirst();
-
-            Object[][] data = new Object[rowCount][6]; // 6 columns
-            int rowIndex = 0;
-
-            while (rs.next()) {
-                data[rowIndex][0] = rs.getInt("number_of_passengers");
-                data[rowIndex][1] = rs.getInt("number_of_flights");
-                data[rowIndex][2] = rs.getInt("flights_with_delay");
-                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
-                data[rowIndex][4] = rs.getInt("successful_flights");
-                data[rowIndex][5] = rs.getDouble("total_payments");
-                rowIndex++;
+    
+            Object[][] data = new Object[1][6]; // Since the query returns one row
+    
+            if (rs.next()) {
+                data[0][0] = rs.getInt("number_of_passengers");
+                data[0][1] = rs.getInt("number_of_flights");
+                data[0][2] = rs.getInt("flights_with_delay");
+                data[0][3] = rs.getInt("flights_with_cancellation");
+                data[0][4] = rs.getInt("successful_flights");
+                data[0][5] = rs.getDouble("total_payments");
             }
+            System.out.println("Data retrieved: " + java.util.Arrays.deepToString(data));
             return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -66,34 +68,36 @@ public class GenerateReport {
             JOIN bookings b ON f.flight_id = b.flight_id
             JOIN tickets t ON b.booking_id = t.booking_id
             WHERE f.dest_airport_id = ?
-              AND b.booking_date BETWEEN ? AND ?
-              AND b.booking_status != 'Refunded'
-              AND f.flight_status != 'Cancelled';
+              AND f.expected_arrival_time BETWEEN ? AND ?
+              AND b.booking_status != 'Refunded';
         """;
-
-        try (PreparedStatement stmt = connection.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+    
+        System.out.println("Executing passengerAirportTraffic");
+        System.out.println("Query: " + query);
+        System.out.println("Parameters: originAirportId=" + destinationAirportId + ", startDate=" + startDate + ", endDate=" + endDate);
+    
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setInt(1, destinationAirportId);
             stmt.setString(2, startDate);
             stmt.setString(3, endDate);
+    
             ResultSet rs = stmt.executeQuery();
-
-            rs.last();
-            int rowCount = rs.getRow();
-            rs.beforeFirst();
-
-            Object[][] data = new Object[rowCount][6]; // 6 columns
-            int rowIndex = 0;
-
-            while (rs.next()) {
-                data[rowIndex][0] = rs.getInt("number_of_passengers");
-                data[rowIndex][1] = rs.getInt("number_of_flights");
-                data[rowIndex][2] = rs.getInt("flights_with_delay");
-                data[rowIndex][3] = rs.getInt("flights_with_cancellation");
-                data[rowIndex][4] = rs.getInt("successful_flights");
-                data[rowIndex][5] = rs.getDouble("total_payments");
-                rowIndex++;
+    
+            Object[][] data = new Object[1][6]; // Since the query returns one row
+    
+            if (rs.next()) {
+                data[0][0] = rs.getInt("number_of_passengers");
+                data[0][1] = rs.getInt("number_of_flights");
+                data[0][2] = rs.getInt("flights_with_delay");
+                data[0][3] = rs.getInt("flights_with_cancellation");
+                data[0][4] = rs.getInt("successful_flights");
+                data[0][5] = rs.getDouble("total_payments");
             }
+            System.out.println("Data retrieved: " + java.util.Arrays.deepToString(data));
             return data;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 
