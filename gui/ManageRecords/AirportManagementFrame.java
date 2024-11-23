@@ -191,7 +191,6 @@ public class AirportManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
-
     private int getNextAirportIdFromDatabase() {
         String query = "SELECT MAX(airport_id) AS max_id FROM airports";
         try (Statement stmt = connection.createStatement();
@@ -718,6 +717,11 @@ public class AirportManagementFrame extends JFrame {
                     companyId = Integer.parseInt(selectedCompany.split(" - ")[0].trim());
                 }
 
+                // Validate if new airport name already exists in the database
+                if (!newName.isEmpty() && isAirportNameExists(newName, airportId)) {
+                    throw new IllegalArgumentException("An airport with this name already exists.");
+                }
+
                 // Validation for input lengths
                 if (!newName.isEmpty() && newName.length() > 25) {
                     throw new IllegalArgumentException("New airport name exceeds 25 characters.");
@@ -748,6 +752,25 @@ public class AirportManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
+
+
+    // Helper method to check if the airport name already exists, excluding the current airport being updated
+    private boolean isAirportNameExists(String name, int airportId) {
+        String query = "SELECT COUNT(*) FROM airports WHERE name = ? AND airport_id != ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, name);
+            stmt.setInt(2, airportId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;  // If count > 0, name exists
+                }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error checking airport name: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        return false;
+    }
+
 
     private void showDeleteRecordDialog() {
         JDialog dialog = new JDialog(this, "Delete Airport Record", true);

@@ -265,6 +265,7 @@ public class AircraftManagementFrame extends JFrame {
         // Variables to hold current values
         final String[] currentAircraftModel = {null};
         final Integer[] currentMaxCapacity = {null};
+        final String[] currentAircraftId = {null};
 
         // Populate current values when an aircraft is selected
         aircraftDropdown.addActionListener(e -> {
@@ -280,6 +281,7 @@ public class AircraftManagementFrame extends JFrame {
                         if (rs.next()) {
                             currentAircraftModel[0] = rs.getString("aircraft_model");
                             currentMaxCapacity[0] = rs.getInt("max_capacity");
+                            currentAircraftId[0] = aircraftId;
                         }
                     }
                 } catch (SQLException ex) {
@@ -343,6 +345,7 @@ public class AircraftManagementFrame extends JFrame {
                 JOptionPane.showMessageDialog(dialog, "Error updating record: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+
 
         cancelButton.addActionListener(e -> dialog.dispose());
 
@@ -708,7 +711,7 @@ public class AircraftManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
-
+    
     private void showDeleteRecordDialog() {
         JDialog dialog = new JDialog(this, "Delete Aircraft Record", true);
         dialog.setSize(600, 400);
