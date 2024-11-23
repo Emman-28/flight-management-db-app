@@ -1,13 +1,13 @@
 package gui.ManageRecords;
 
-import operations.FlightLogManager;
-import operations.ManageRecord;
-import operations.ExecuteTransaction;
-import operations.GenerateReport;
-
-import javax.swing.*;
+import gui.ManageRecordsFrame;
 import java.awt.*;
 import java.sql.Connection;
+import javax.swing.*;
+import operations.ExecuteTransaction;
+import operations.FlightLogManager;
+import operations.GenerateReport;
+import operations.ManageRecord;
 
 public class FlightLogManagementFrame extends JFrame {
 
