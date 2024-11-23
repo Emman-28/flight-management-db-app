@@ -51,11 +51,15 @@ public class MainFrame {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 
         // Title section
-        JLabel titleLabel = new JLabel("Flight Database Management System", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Flight Database", SwingConstants.CENTER);
+        JLabel titleLabel2 = new JLabel("Management System", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(titleLabel);
+        contentPanel.add(titleLabel2);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
+        titleLabel2.setFont(new Font("Arial", Font.BOLD, 40));
+        titleLabel2.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel welcomeLabel = new JLabel("Select an operation", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.PLAIN,14));
