@@ -1,12 +1,12 @@
 package gui;
 
-import operations.*;
-import java.sql.*;
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.*;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import operations.*;
 
 public class MainFrame {
     public MainFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
@@ -57,7 +57,7 @@ public class MainFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
-        JLabel welcomeLabel = new JLabel("What would you like to do?", SwingConstants.CENTER);
+        JLabel welcomeLabel = new JLabel("Select an operation", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.PLAIN,14));
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(welcomeLabel);

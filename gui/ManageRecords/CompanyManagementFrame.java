@@ -3,9 +3,12 @@ package gui.ManageRecords;
 import gui.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.*;
 import operations.*;
@@ -22,69 +25,116 @@ public class CompanyManagementFrame extends JFrame {
         this.transaction = transaction;
         this.report = report;
 
-        setTitle("Company Record Management");
-        setSize(400, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setIconImage(new ImageIcon("logo.png").getImage());
+        JFrame frame = new JFrame("Company Record Management");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 400);
+        frame.setLocationRelativeTo(null);  // Center the window
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        frame.setUndecorated(false); // Set to true if you want no window borders
+        frame.setIconImage(new ImageIcon("logo.png").getImage());
 
-        // Main panel with BorderLayout
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(Color.WHITE);
+        // Background panel
+        JPanel backgroundPanel = new JPanel(new GridBagLayout()) {
+            private Image backgroundImage;
 
-        // Panel for the selection message with spacing
-        JPanel selectionPanel = new JPanel();
-        selectionPanel.setLayout(new BoxLayout(selectionPanel, BoxLayout.Y_AXIS));
-        selectionPanel.setBackground(Color.WHITE);
+            {
+                try {
+                    backgroundImage = ImageIO.read(new File("db bg.png")); // Replace with your company-specific image
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        selectionPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Space above
-        JLabel selectionMessage = new JLabel("Select an action for the companies records:", SwingConstants.CENTER);
-        selectionMessage.setFont(new Font("Arial", Font.BOLD, 16));
-        selectionMessage.setForeground(Color.BLACK);
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+
+        backgroundPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 10, 10, 10); // Spacing around components
+
+        // Content panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setOpaque(false); // Transparent for background visibility
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+
+        // Title
+        JLabel titleLabel = new JLabel("Company Record Management", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space
+
+        JLabel selectionMessage = new JLabel("Select an action for the company records:", SwingConstants.CENTER);
+        selectionMessage.setFont(new Font("Arial", Font.PLAIN, 14));
         selectionMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
-        selectionPanel.add(selectionMessage);
-        selectionPanel.add(Box.createRigidArea(new Dimension(0, 15))); // Space below
-        mainPanel.add(selectionPanel, BorderLayout.NORTH);
+        contentPanel.add(selectionMessage);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 20))); // Add space
 
-        // Button panel with FlowLayout
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        buttonPanel.setBackground(Color.WHITE);
-        Dimension buttonSize = new Dimension(200, 35);
-
+        // Buttons
         JButton createButton = new JButton("Create Company Record");
+        JButton updateButton = new JButton("Update Company Record");
+        JButton readButton = new JButton("Read Company Record");
+        JButton deleteButton = new JButton("Delete Company Record");
+        JButton backButton = new JButton("Back");
+
+        Dimension buttonSize = new Dimension(250, 40);
+
         createButton.setPreferredSize(buttonSize);
+        createButton.setMaximumSize(buttonSize);
+        createButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         createButton.addActionListener(e -> showCreateRecordDialog());
 
-        JButton updateButton = new JButton("Update Company Record");
         updateButton.setPreferredSize(buttonSize);
+        updateButton.setMaximumSize(buttonSize);
+        updateButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         updateButton.addActionListener(e -> showUpdateRecordDialog());
 
-        JButton readButton = new JButton("Read Company Record");
         readButton.setPreferredSize(buttonSize);
+        readButton.setMaximumSize(buttonSize);
+        readButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         readButton.addActionListener(e -> showReadRecordDialog());
 
-        JButton deleteButton = new JButton("Delete Company Record");
         deleteButton.setPreferredSize(buttonSize);
+        deleteButton.setMaximumSize(buttonSize);
+        deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         deleteButton.addActionListener(e -> showDeleteRecordDialog());
 
-        JButton backButton = new JButton("Back to Records Menu");
-        backButton.setPreferredSize(buttonSize);
+        backButton.setPreferredSize(new Dimension(75, 30));
+        backButton.setMaximumSize(new Dimension(75, 30));
+        backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.addActionListener(e -> {
-            dispose();
-            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Pass all three parameters back
+            frame.dispose();
+            new ManageRecordsFrame(connection, manageRecord, transaction, report); // Go back to records menu
         });
 
-        buttonPanel.add(createButton);
-        buttonPanel.add(updateButton);
-        buttonPanel.add(readButton);
-        buttonPanel.add(deleteButton);
-        buttonPanel.add(backButton);
-        mainPanel.add(buttonPanel, BorderLayout.CENTER);
+        contentPanel.add(createButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(updateButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(readButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(deleteButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        contentPanel.add(backButton);
 
-        add(mainPanel);
-        setVisible(true);
+        // Add content to background
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        backgroundPanel.add(contentPanel, gbc);
+
+        frame.setContentPane(backgroundPanel);
+        frame.setVisible(true);
     }
-
     private void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Company Record", true);
         dialog.setSize(600, 380);

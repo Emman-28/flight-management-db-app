@@ -1,13 +1,13 @@
 package gui;
 
 import gui.ManageRecords.*;
-import operations.*;
-import java.sql.*;
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.*;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import operations.*;
 
 public class ManageRecordsFrame {
     public ManageRecordsFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
@@ -58,7 +58,7 @@ public class ManageRecordsFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
-        JLabel welcomeLabel = new JLabel("Which record would you like to manage?", SwingConstants.CENTER);
+        JLabel welcomeLabel = new JLabel("Select a record to manage", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(welcomeLabel);
@@ -93,15 +93,15 @@ public class ManageRecordsFrame {
         aircraftButton.setMaximumSize(buttonSize);
         aircraftButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        contentPanel.add(aircraftButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(airportButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add spacing between buttons
+        contentPanel.add(companyButton);
+        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(flightButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         contentPanel.add(passportButton);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(companyButton);
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        contentPanel.add(aircraftButton);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // Back button
