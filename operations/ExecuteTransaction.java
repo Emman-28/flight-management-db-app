@@ -288,7 +288,7 @@ public class ExecuteTransaction {
     }
 
     private void updateFlightSeating(String flightId) throws SQLException {
-        String updateSQL = "UPDATE flights SET seating_capacity = seating_capacity - 1 WHERE flight_id = ?";
+        String updateSQL = "UPDATE flights SET seating_capacity = seating_capacity + 1 WHERE flight_id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateSQL)) {
             preparedStatement.setString(1, flightId);
             preparedStatement.executeUpdate();
