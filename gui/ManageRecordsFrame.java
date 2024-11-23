@@ -119,7 +119,7 @@ public class ManageRecordsFrame {
 
         flightButton.addActionListener(e -> {
             frame.dispose();
-            new FlightManagementFrame(connection, record, transaction, report); // Redirect to Flight Management
+            //new FlightManagementFrame(connection, record, transaction, report); // Redirect to Flight Management
         });
 
         passportButton.addActionListener(e -> {

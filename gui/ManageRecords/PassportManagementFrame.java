@@ -18,8 +18,8 @@ import operations.*;
 public class PassportManagementFrame extends JFrame {
     private final ManageRecord manageRecord;
     private final ExecuteTransaction transaction;
-    private final GenerateReport report;
     private final Connection connection;
+    private final GenerateReport report;
 
     public PassportManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         this.connection = connection;
@@ -139,7 +139,7 @@ public class PassportManagementFrame extends JFrame {
         frame.setVisible(true);
     }
 
-    private void showCreateRecordDialog() {
+    public void showCreateRecordDialog() {
         JDialog dialog = new JDialog(this, "Create Passport Record", true);
         dialog.setSize(750, 600);
         dialog.setLayout(new BorderLayout());
@@ -164,7 +164,7 @@ public class PassportManagementFrame extends JFrame {
         String[] days = new String[32];
         String[] months = new String[13];
         String[] years = new String[101];
-        fillDates(days, months, years);
+        fillDatesIssuance(days, months, years);
         JComboBox<String> dayComboBoxBirth = new JComboBox<>(days);
         JComboBox<String> monthComboBoxBirth = new JComboBox<>(months);
         JComboBox<String> yearComboBoxBirth = new JComboBox<>(years);
@@ -200,6 +200,7 @@ public class PassportManagementFrame extends JFrame {
         JTextField placeOfIssueField = new JTextField();
         
         // issue date
+        fillDatesIssuance(days, months, years);
         JComboBox<String> dayComboBoxIssue = new JComboBox<>(days);
         JComboBox<String> monthComboBoxIssue = new JComboBox<>(months);
         JComboBox<String> yearComboBoxIssue = new JComboBox<>(years);
@@ -219,6 +220,7 @@ public class PassportManagementFrame extends JFrame {
         JLabel issueDateLabel = new JLabel("Issue Date:");
 
         // expiration date
+        fillDatesExpiry(days, months, years);
         JComboBox<String> dayComboBoxExp = new JComboBox<>(days);
         JComboBox<String> monthComboBoxExp = new JComboBox<>(months);
         JComboBox<String> yearComboBoxExp = new JComboBox<>(years);
@@ -390,18 +392,33 @@ public class PassportManagementFrame extends JFrame {
         dialog.setVisible(true);
     }
 
-    private void fillDates(String[] days, String[] months, String[] years) {
+    private void fillDatesIssuance(String[] days, String[] months, String[] years) {
         days[0] = "--";
         for(int i = 1; i < 32; i++) {
             days[i] = String.format("%02d", i);
         }
         months[0] = "--";
         for(int i = 1; i < 13; i++) {
-            months[i] = String.format("%02d", i); 
-        }   
+            months[i] = String.format("%02d", i);
+        }
         years[0] = "--";
         for(int i = 1; i < 101; i++) {
             years[i] = String.valueOf(2025 - i);
+        }
+    }
+
+    private void fillDatesExpiry(String[] days, String[] months, String[] years) {
+        days[0] = "--";
+        for(int i = 1; i < 32; i++) {
+            days[i] = String.format("%02d", i);
+        }
+        months[0] = "--";
+        for(int i = 1; i < 13; i++) {
+            months[i] = String.format("%02d", i);
+        }
+        years[0] = "--";
+        for(int i = 1; i < 101; i++) {
+            years[i] = String.valueOf(3000 - i);
         }
     }
 
@@ -799,7 +816,7 @@ public class PassportManagementFrame extends JFrame {
         String[] days = new String[32];
         String[] months = new String[13];
         String[] years = new String[101];
-        fillDates(days, months, years);
+        fillDatesIssuance(days, months, years);
 
         JComboBox<String> dayComboBoxBirth = new JComboBox<>(days);
         JComboBox<String> monthComboBoxBirth = new JComboBox<>(months);
@@ -1260,4 +1277,5 @@ public class PassportManagementFrame extends JFrame {
     
         dialog.setVisible(true);
     }
+
 }

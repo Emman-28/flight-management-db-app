@@ -2,6 +2,8 @@ package operations;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.*;
+import java.math.*;
 
 public class ExecuteTransaction {
     private Connection connection;
@@ -109,9 +111,150 @@ public class ExecuteTransaction {
         };
     }
 
-    // TODO:
-    public void bookFlight() throws SQLException {
+    public void bookFlight(int passengerId, String flightId, String seatNumber, BigDecimal price) throws SQLException {
+        connection.setAutoCommit(false); // Begin transaction
 
+        try {
+            // 1. Check flight availability
+            if (!isFlightAvailable(flightId)) {
+                throw new SQLException("No available flight found for the given criteria.");
+            }
+
+            // 2. Check flight status
+            if (!isFlightBookable(flightId)) {
+                throw new SQLException("Flight status is not available for booking.");
+            }
+
+            // 3. Check seat availability
+            if (!hasAvailableSeats(flightId)) {
+                throw new SQLException("No seats are available on the selected flight.");
+            }
+
+            // 4. Check and retrieve or create passport and passenger records
+            int passportId = ensurePassportExists(passengerId);
+            int finalPassengerId = ensurePassengerExists(passengerId, passportId);
+
+            // 5. Create a booking record
+            int bookingId = createBookingRecord(finalPassengerId, flightId);
+
+            // 6. Create a ticket record
+            createTicketRecord(bookingId, seatNumber, price);
+
+            // 7. Update flight seating capacity
+            updateFlightSeating(flightId);
+
+            connection.commit(); // Commit transaction
+        } catch (SQLException e) {
+            connection.rollback(); // Rollback transaction in case of failure
+            throw e;
+        } finally {
+            connection.setAutoCommit(true); // Restore default behavior
+        }
+    }
+
+    private boolean isFlightAvailable(String flightId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM flights WHERE flight_id = ? AND expected_departure_time > NOW()";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, flightId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next() && resultSet.getInt(1) > 0;
+        }
+    }
+
+    private boolean isFlightBookable(String flightId) throws SQLException {
+        String sql = "SELECT flight_status FROM flights WHERE flight_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, flightId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                String status = resultSet.getString("flight_status");
+                return "Available".equalsIgnoreCase(status);
+            }
+            return false;
+        }
+    }
+
+    private boolean hasAvailableSeats(String flightId) throws SQLException {
+        String sql = "SELECT seating_capacity FROM flights WHERE flight_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, flightId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("seating_capacity") > 0;
+            }
+            return false;
+        }
+    }
+
+    private int ensurePassportExists(int passengerId) throws SQLException {
+        // Check if a passport exists for the given passenger
+        String sql = "SELECT passport_id FROM passports WHERE passport_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, passengerId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("passport_id");
+            } else {
+                throw new SQLException("Passport record not found. Please create a passport record first.");
+            }
+        }
+    }
+
+    private int ensurePassengerExists(int passengerId, int passportId) throws SQLException {
+        // Check if a passenger exists, otherwise create one
+        String selectSQL = "SELECT passenger_id FROM passengers WHERE passenger_id = ?";
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectSQL)) {
+            selectStatement.setInt(1, passengerId);
+            ResultSet resultSet = selectStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("passenger_id");
+            } else {
+                // Create a passenger record
+                String insertSQL = "INSERT INTO passengers (passenger_id, passport_id) VALUES (?, ?)";
+                try (PreparedStatement insertStatement = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
+                    insertStatement.setInt(1, passengerId);
+                    insertStatement.setInt(2, passportId);
+                    insertStatement.executeUpdate();
+                    ResultSet keys = insertStatement.getGeneratedKeys();
+                    if (keys.next()) {
+                        return keys.getInt(1);
+                    }
+                    throw new SQLException("Failed to create passenger record.");
+                }
+            }
+        }
+    }
+
+    private int createBookingRecord(int passengerId, String flightId) throws SQLException {
+        String insertSQL = "INSERT INTO bookings (passenger_id, flight_id, booking_date, booking_status) VALUES (?, ?, NOW(), 'Paid')";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setInt(1, passengerId);
+            preparedStatement.setString(2, flightId);
+            preparedStatement.executeUpdate();
+            ResultSet keys = preparedStatement.getGeneratedKeys();
+            if (keys.next()) {
+                return keys.getInt(1);
+            }
+            throw new SQLException("Failed to create booking record.");
+        }
+    }
+
+    private void createTicketRecord(int bookingId, String seatNumber, BigDecimal price) throws SQLException {
+        String insertSQL = "INSERT INTO tickets (booking_id, seat_number, price) VALUES (?, ?, ?)";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertSQL)) {
+            preparedStatement.setInt(1, bookingId);
+            preparedStatement.setString(2, seatNumber);
+            preparedStatement.setBigDecimal(3, price);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void updateFlightSeating(String flightId) throws SQLException {
+        String updateSQL = "UPDATE flights SET seating_capacity = seating_capacity - 1 WHERE flight_id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateSQL)) {
+            preparedStatement.setString(1, flightId);
+            preparedStatement.executeUpdate();
+        }
     }
 
     // TODO:
