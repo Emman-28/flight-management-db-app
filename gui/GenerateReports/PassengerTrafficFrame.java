@@ -5,6 +5,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import operations.*;
@@ -15,20 +17,45 @@ public class PassengerTrafficFrame extends JFrame {
     private final GenerateReport report;
     private final Connection connection;
 
+    // GUI Components
+    private JLabel parameterLabel;
+    private JComboBox<AirportEntry> parameterComboBox; // Changed to hold AirportEntry objects
+    private List<AirportEntry> airportList;
+
+    // Custom class to represent an Airport with id and name
+    private static class AirportEntry {
+        private final int id;
+        private final String name;
+
+        public AirportEntry(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            return id + " - " + name;
+        }
+    }
+
     public PassengerTrafficFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         this.connection = connection;
         this.manageRecord = manageRecord;
         this.transaction = transaction;
         this.report = report;
 
-        // frame setup
+        // Frame setup
         setTitle("Passenger Traffic Report Generator");
         setSize(800, 600);
         setLocationRelativeTo(null); // Centers window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setIconImage(new ImageIcon("logo.png").getImage());
 
-        // main panel
+        // Main panel with background image
         JPanel mainPanel = new JPanel(new GridBagLayout()) {
             private Image backgroundImage;
 
@@ -57,45 +84,46 @@ public class PassengerTrafficFrame extends JFrame {
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.CENTER;
 
-        // title
+        // Title
         JLabel titleLabel = new JLabel("Passenger Traffic Report");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 40));
         gbc.gridy = 0;
         mainPanel.add(titleLabel, gbc);
 
-        // input panel
+        // Input panel
         JPanel inputPanel = new JPanel(new GridBagLayout());
         inputPanel.setOpaque(false); // Transparent
         GridBagConstraints gbcInput = new GridBagConstraints();
         gbcInput.insets = new Insets(10, 10, 10, 10);
         gbcInput.fill = GridBagConstraints.HORIZONTAL;
 
-        // report selection
+        // Report selection
         JLabel reportTypeLabel = new JLabel("Select Report Type:");
         reportTypeLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         gbcInput.gridx = 0;
         gbcInput.gridy = 0;
         inputPanel.add(reportTypeLabel, gbcInput);
 
-        String[] reportTypes = {"By Origin Airport", "By Destination Airport", "By Company"};
+        String[] reportTypes = {"By Origin Airport", "By Destination Airport"}; // Removed "By Company"
         JComboBox<String> reportTypeComboBox = new JComboBox<>(reportTypes);
         reportTypeComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
         gbcInput.gridx = 1;
         inputPanel.add(reportTypeComboBox, gbcInput);
 
-        // oarameter input
-        JLabel parameterLabel = new JLabel("Enter Parameter:");
+        // Parameter input (Dropdown)
+        parameterLabel = new JLabel("Select Airport:");
         parameterLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         gbcInput.gridx = 0;
         gbcInput.gridy = 1;
         inputPanel.add(parameterLabel, gbcInput);
 
-        JTextField parameterField = new JTextField(20);
-        parameterField.setFont(new Font("Arial", Font.PLAIN, 16));
+        parameterComboBox = new JComboBox<>();
+        parameterComboBox.setFont(new Font("Arial", Font.PLAIN, 16));
+        parameterComboBox.setPreferredSize(new Dimension(300, 25));
         gbcInput.gridx = 1;
-        inputPanel.add(parameterField, gbcInput);
+        inputPanel.add(parameterComboBox, gbcInput);
 
-        // start date
+        // Start date
         JLabel startDateLabel = new JLabel("Start Date (YYYY-MM-DD):");
         startDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         gbcInput.gridx = 0;
@@ -107,7 +135,7 @@ public class PassengerTrafficFrame extends JFrame {
         gbcInput.gridx = 1;
         inputPanel.add(startDateField, gbcInput);
 
-        // end date
+        // End date
         JLabel endDateLabel = new JLabel("End Date (YYYY-MM-DD):");
         endDateLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         gbcInput.gridx = 0;
@@ -122,7 +150,7 @@ public class PassengerTrafficFrame extends JFrame {
         gbc.gridy = 1;
         mainPanel.add(inputPanel, gbc);
 
-        // buttons
+        // Buttons panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
         buttonPanel.setOpaque(false); // Make button panel transparent
 
@@ -136,11 +164,11 @@ public class PassengerTrafficFrame extends JFrame {
         backButton.setPreferredSize(new Dimension(100, 40));
         buttonPanel.add(backButton);
 
-        // adds button panel to main panel
+        // Add buttons to main panel
         gbc.gridy = 2;
         mainPanel.add(buttonPanel, gbc);
 
-        // output table
+        // Output table
         JTable resultTable = new JTable();
         resultTable.setFont(new Font("Arial", Font.PLAIN, 14));
         resultTable.setRowHeight(20);
@@ -152,15 +180,27 @@ public class PassengerTrafficFrame extends JFrame {
         mainPanel.add(scrollPane, gbc);
         add(mainPanel);
 
-        // action listeners
+        // Initialize data lists
+        initializeDataLists();
+
+        // Populate parameterComboBox based on default report type
+        updateParameterComboBox((String) reportTypeComboBox.getSelectedItem());
+
+        // Add action listener to reportTypeComboBox to update parameterComboBox
+        reportTypeComboBox.addActionListener(e -> {
+            String selectedReport = (String) reportTypeComboBox.getSelectedItem();
+            updateParameterComboBox(selectedReport);
+        });
+
+        // Action listener for generate button
         generateButton.addActionListener(e -> {
             String reportType = (String) reportTypeComboBox.getSelectedItem();
-            String parameter = parameterField.getText().trim();
+            Object selectedObject = parameterComboBox.getSelectedItem();
             String startDate = startDateField.getText().trim();
             String endDate = endDateField.getText().trim();
 
-            // validation
-            if (parameter.isEmpty() || startDate.isEmpty() || endDate.isEmpty()) {
+            // Validation
+            if (selectedObject == null || startDate.isEmpty() || endDate.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -169,17 +209,28 @@ public class PassengerTrafficFrame extends JFrame {
                 return;
             }
 
+            // Ensure startDate is before or equal to endDate
+            if (startDate.compareTo(endDate) > 0) {
+                JOptionPane.showMessageDialog(this, "Start Date cannot be after End Date.", "Date Range Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Retrieve the selected AirportEntry object
+            if (!(selectedObject instanceof AirportEntry)) {
+                JOptionPane.showMessageDialog(this, "Invalid airport selection.", "Selection Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            AirportEntry selectedAirport = (AirportEntry) selectedObject;
+            int airportId = selectedAirport.getId();
+
             try {
                 Object[][] reportData = null;
                 switch (reportType) {
                     case "By Origin Airport":
-                        reportData = report.passengerAirportTraffic(parameter, startDate, endDate, connection);
+                        reportData = report.passengerAirportTraffic(airportId, startDate, endDate);
                         break;
                     case "By Destination Airport":
-                        reportData = report.passengerDestinationTraffic(parameter, startDate, endDate, connection);
-                        break;
-                    case "By Company":
-                        reportData = report.passengerCompanyTraffic(parameter, startDate, endDate, connection);
+                        reportData = report.passengerDestinationTraffic(airportId, startDate, endDate);
                         break;
                     default:
                         JOptionPane.showMessageDialog(this, "Invalid report type selected.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -202,7 +253,7 @@ public class PassengerTrafficFrame extends JFrame {
             }
         });
 
-        // action listener for back
+        // Action listener for back button
         backButton.addActionListener(e -> {
             dispose();
             new GenerateReportsFrame(connection, manageRecord, transaction, report);
@@ -211,7 +262,36 @@ public class PassengerTrafficFrame extends JFrame {
         setVisible(true);
     }
 
-    // date validation
+    private void initializeDataLists() {
+        airportList = new ArrayList<>();
+
+        // Fetch Airports
+        String airportQuery = "SELECT airport_id, name FROM airports ORDER BY airport_id ASC";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(airportQuery)) {
+            while (rs.next()) {
+                int id = rs.getInt("airport_id");
+                String name = rs.getString("name");
+                airportList.add(new AirportEntry(id, name));
+                System.out.println("Fetched Airport: " + id + " - " + name); // Debug statement
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error fetching airports: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void updateParameterComboBox(String reportType) {
+        parameterComboBox.removeAllItems();
+        if (reportType.equals("By Origin Airport") || reportType.equals("By Destination Airport")) {
+            parameterLabel.setText("Select Airport:");
+            for (AirportEntry airport : airportList) {
+                parameterComboBox.addItem(airport);
+            }
+        } else {
+            parameterLabel.setText("Parameter:");
+        }
+    }
+
     private boolean isValidDate(String date) {
         return date.matches("\\d{4}-\\d{2}-\\d{2}");
     }
