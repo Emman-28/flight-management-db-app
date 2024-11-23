@@ -396,23 +396,28 @@ public class AircraftManagementFrame extends JFrame {
         dialog.setLocationRelativeTo(this);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setLayout(new GridLayout(6, 2, 10, 10)); // Increased rows for the new toggle
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
         JLabel aircraftIdLabel = new JLabel("Aircraft ID (Single or Comma-separated, e.g., A350, B737):");
         JTextField aircraftIdField = new JTextField();
 
-        JLabel aircraftNameLabel = new JLabel("Aircraft Name (Single or Comma-separated, e.g., Airbus, Boeing):");
-        JTextField aircraftNameField = new JTextField();
+        JLabel aircraftModelLabel = new JLabel("Aircraft Model (Single or Comma-separated, e.g., Airbus, Boeing):");
+        JTextField aircraftModelField = new JTextField();
 
-        JLabel capacityLabel = new JLabel("Capacity (Single or Range, e.g., 150 or 150-300):");
+        // Toggle for LIKE query
+        JCheckBox likeQueryToggle = new JCheckBox("Use LIKE for Aircraft Model (Supports Wildcards, e.g., %Airbus%)");
+
+        JLabel capacityLabel = new JLabel("Max Capacity (Single or Range, e.g., 150 or 150-300):");
         JTextField capacityField = new JTextField();
 
         inputPanel.add(aircraftIdLabel);
         inputPanel.add(aircraftIdField);
-        inputPanel.add(aircraftNameLabel);
-        inputPanel.add(aircraftNameField);
+        inputPanel.add(aircraftModelLabel);
+        inputPanel.add(aircraftModelField);
+        inputPanel.add(new JLabel()); // Empty label for spacing
+        inputPanel.add(likeQueryToggle); // Add toggle below the Aircraft Model field
         inputPanel.add(capacityLabel);
         inputPanel.add(capacityField);
 
@@ -437,29 +442,33 @@ public class AircraftManagementFrame extends JFrame {
                     whereClause.append(") AND ");
                 }
 
-                // Parse Aircraft Name
-                if (!aircraftNameField.getText().trim().isEmpty()) {
-                    String[] aircraftNames = aircraftNameField.getText().trim().split(",");
+                // Parse Aircraft Model with optional LIKE query
+                if (!aircraftModelField.getText().trim().isEmpty()) {
+                    String[] aircraftModels = aircraftModelField.getText().trim().split(",");
                     whereClause.append("(");
-                    for (String name : aircraftNames) {
-                        whereClause.append("name = '").append(name.trim()).append("' OR ");
+                    for (String model : aircraftModels) {
+                        if (likeQueryToggle.isSelected()) {
+                            whereClause.append("aircraft_model LIKE '").append(model.trim()).append("' OR ");
+                        } else {
+                            whereClause.append("aircraft_model = '").append(model.trim()).append("' OR ");
+                        }
                     }
                     whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
                     whereClause.append(") AND ");
                 }
 
-                // Parse Capacity
+                // Parse Max Capacity
                 if (!capacityField.getText().trim().isEmpty()) {
                     String capacityInput = capacityField.getText().trim();
                     if (capacityInput.contains("-")) {
                         String[] range = capacityInput.split("-");
-                        whereClause.append("capacity BETWEEN ")
+                        whereClause.append("max_capacity BETWEEN ")
                                 .append(range[0].trim())
                                 .append(" AND ")
                                 .append(range[1].trim())
                                 .append(" AND ");
                     } else {
-                        whereClause.append("capacity = ").append(capacityInput).append(" AND ");
+                        whereClause.append("max_capacity = ").append(capacityInput).append(" AND ");
                     }
                 }
 
@@ -471,7 +480,7 @@ public class AircraftManagementFrame extends JFrame {
                 // Construct the final query
                 String query = whereClause.length() > 0 ? whereClause.toString() : null;
                 List<Object[]> results;
-                List<String> columnNames = List.of("Aircraft ID", "Name", "Capacity");
+                List<String> columnNames = List.of("Aircraft ID", "Aircraft Model", "Max Capacity");
 
                 if (query == null || query.isEmpty()) {
                     results = manageRecord.readWithQuery("SELECT * FROM aircrafts");
@@ -479,16 +488,21 @@ public class AircraftManagementFrame extends JFrame {
                     results = manageRecord.readWithQuery("SELECT * FROM aircrafts WHERE " + query);
                 }
 
-                // Prepare data for JTable
-                Object[][] data = new Object[results.size()][columnNames.size()];
-                for (int i = 0; i < results.size(); i++) {
-                    data[i] = results.get(i);
-                }
+                // Handle case with no matching records
+                if (results.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "No records found matching the query conditions.", "No Records Found", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Prepare data for JTable
+                    Object[][] data = new Object[results.size()][columnNames.size()];
+                    for (int i = 0; i < results.size(); i++) {
+                        data[i] = results.get(i);
+                    }
 
-                // Create JTable for displaying results
-                JTable resultTable = new JTable(data, columnNames.toArray());
-                JScrollPane scrollPane = new JScrollPane(resultTable);
-                JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+                    // Create JTable for displaying results
+                    JTable resultTable = new JTable(data, columnNames.toArray());
+                    JScrollPane scrollPane = new JScrollPane(resultTable);
+                    JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -507,7 +521,7 @@ public class AircraftManagementFrame extends JFrame {
     private void showFilterDialog() {
         // Create dialog with appropriate title and size
         JDialog dialog = new JDialog(this, "Read Records via Filters", true);
-        dialog.setSize(600, 400); // Adjust size as needed
+        dialog.setSize(700, 450); // Adjust size as needed
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
@@ -524,12 +538,15 @@ public class AircraftManagementFrame extends JFrame {
         // Labels for information and order by
         JLabel includeLabel = new JLabel("<html><body>Select Aircraft Information to Include (min. 2):</body></html>");
         JLabel orderByLabel = new JLabel("Order By (max. 1):");
+        JLabel orderAdviceLabel = new JLabel("<html><body><i>Note: Default arrangement is ascending.</i></body></html>");
 
         // Positioning labels
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         selectionPanel.add(includeLabel, gbc);
         gbc.gridx = 2; gbc.gridwidth = 2;
         selectionPanel.add(orderByLabel, gbc);
+        gbc.gridy = 4; gbc.gridwidth = 2;
+        selectionPanel.add(orderAdviceLabel, gbc);
 
         // Info checkboxes
         JCheckBox aircraftIdCheckbox = new JCheckBox("Aircraft ID");
@@ -543,11 +560,13 @@ public class AircraftManagementFrame extends JFrame {
         JCheckBox orderByAircraftId = new JCheckBox("Aircraft ID");
         JCheckBox orderByAircraftModel = new JCheckBox("Aircraft Model");
         JCheckBox orderByMaxCapacity = new JCheckBox("Maximum Capacity");
+        JCheckBox descendingOrderCheckbox = new JCheckBox("Descending Order"); // New checkbox
 
         // Initially disable order-by checkboxes
         orderByAircraftId.setEnabled(false);
         orderByAircraftModel.setEnabled(false);
         orderByMaxCapacity.setEnabled(false);
+        descendingOrderCheckbox.setEnabled(false);
 
         // Add info checkboxes to the panel
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
@@ -564,6 +583,8 @@ public class AircraftManagementFrame extends JFrame {
         selectionPanel.add(orderByAircraftModel, gbc);
         gbc.gridy = 3;
         selectionPanel.add(orderByMaxCapacity, gbc);
+        gbc.gridy = 5; // Positioning the descending order checkbox
+        selectionPanel.add(descendingOrderCheckbox, gbc);
 
         // Add "All" checkbox
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 1;
@@ -586,7 +607,7 @@ public class AircraftManagementFrame extends JFrame {
                     (orderByMaxCapacity.isSelected() ? 1 : 0);
 
             // Enable/disable the Read button based on selection criteria
-            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount <= 1);
+            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount == 1);
 
             // Enable order-by checkboxes only if corresponding info checkbox is selected
             orderByAircraftId.setEnabled(aircraftIdCheckbox.isSelected());
@@ -597,6 +618,9 @@ public class AircraftManagementFrame extends JFrame {
             if (!aircraftIdCheckbox.isSelected()) orderByAircraftId.setSelected(false);
             if (!aircraftModelCheckbox.isSelected()) orderByAircraftModel.setSelected(false);
             if (!maxCapacityCheckbox.isSelected()) orderByMaxCapacity.setSelected(false);
+
+            // Enable descending order checkbox if any order-by checkbox is selected
+            descendingOrderCheckbox.setEnabled(selectedOrderByCount > 0);
 
             // Update "All" checkbox status based on the other checkboxes
             allCheckbox.setSelected(aircraftIdCheckbox.isSelected() &&
@@ -646,6 +670,9 @@ public class AircraftManagementFrame extends JFrame {
             else if (orderByAircraftModel.isSelected()) query.append(" ORDER BY aircraft_model");
             else if (orderByMaxCapacity.isSelected()) query.append(" ORDER BY max_capacity");
 
+            // Add descending order if checkbox is selected
+            if (descendingOrderCheckbox.isSelected()) query.append(" DESC");
+
             try {
                 // Execute query
                 List<Object[]> results = manageRecord.readWithQuery(query.toString());
@@ -681,7 +708,6 @@ public class AircraftManagementFrame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
-
 
     private void showDeleteRecordDialog() {
         JDialog dialog = new JDialog(this, "Delete Aircraft Record", true);

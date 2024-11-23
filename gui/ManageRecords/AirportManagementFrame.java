@@ -245,7 +245,6 @@ public class AirportManagementFrame extends JFrame {
         }
     }
 
-
     private void showReadRecordDialog() {
         JDialog dialog = new JDialog(this, "Read Airports Records", true);
         dialog.setSize(300, 200);
@@ -284,7 +283,7 @@ public class AirportManagementFrame extends JFrame {
     private void showFilterDialog() {
         // Create dialog with smaller size
         JDialog dialog = new JDialog(this, "Read Records via Filters", true);
-        dialog.setSize(600, 400);  // Smaller size for a cleaner look
+        dialog.setSize(600, 450);  // Adjusted size for new descending order feature
         dialog.setLayout(new BorderLayout());
         dialog.setLocationRelativeTo(this);
 
@@ -301,12 +300,15 @@ public class AirportManagementFrame extends JFrame {
         // Labels for information and order by
         JLabel includeLabel = new JLabel("<html><body>Select Airports Information to Include (min. 2):</body></html>");
         JLabel orderByLabel = new JLabel("Order By (max. 1):");
+        JLabel orderAdviceLabel = new JLabel("<html><body><i>Note: Default arrangement is ascending.</i></body></html>");
 
         // Positioning labels with GridBagLayout
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         selectionPanel.add(includeLabel, gbc);
         gbc.gridx = 2; gbc.gridwidth = 2;
         selectionPanel.add(orderByLabel, gbc);
+        gbc.gridy = 6; gbc.gridwidth = 2;
+        selectionPanel.add(orderAdviceLabel, gbc);
 
         // Info checkboxes
         JCheckBox airportIdCheckbox = new JCheckBox("Airports ID");
@@ -322,34 +324,38 @@ public class AirportManagementFrame extends JFrame {
         JCheckBox orderByAirportName = new JCheckBox("Airports Name");
         JCheckBox orderByCountryName = new JCheckBox("Country Name");
         JCheckBox orderByCompanyId = new JCheckBox("Company ID");
+        JCheckBox descendingOrderCheckbox = new JCheckBox("Descending Order"); // Added descending order checkbox
 
         // Initially disable order-by checkboxes
         orderByAirportId.setEnabled(false);
         orderByAirportName.setEnabled(false);
         orderByCountryName.setEnabled(false);
         orderByCompanyId.setEnabled(false);
+        descendingOrderCheckbox.setEnabled(false); // Initially disabled
 
-        // Add info checkboxes to the panel (left-aligned)
+        // Add info checkboxes to the panel
         gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
         selectionPanel.add(airportIdCheckbox, gbc);
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridy = 2;
         selectionPanel.add(airportNameCheckbox, gbc);
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridy = 3;
         selectionPanel.add(countryNameCheckbox, gbc);
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridy = 4;
         selectionPanel.add(companyIdCheckbox, gbc);
 
-        // Add order-by checkboxes to the panel (left-aligned)
-        gbc.gridx = 2; gbc.gridy = 2;
+        // Add order-by checkboxes to the panel
+        gbc.gridx = 2; gbc.gridy = 1;
         selectionPanel.add(orderByAirportId, gbc);
-        gbc.gridx = 2; gbc.gridy = 3;
+        gbc.gridy = 2;
         selectionPanel.add(orderByAirportName, gbc);
-        gbc.gridx = 2; gbc.gridy = 4;
+        gbc.gridy = 3;
         selectionPanel.add(orderByCountryName, gbc);
-        gbc.gridx = 2; gbc.gridy = 5;
+        gbc.gridy = 4;
         selectionPanel.add(orderByCompanyId, gbc);
+        gbc.gridy = 5; // Positioning the descending order checkbox
+        selectionPanel.add(descendingOrderCheckbox, gbc);
 
-        // Add "All" checkbox below the other checkboxes
+        // Add "All" checkbox
         gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 1;
         selectionPanel.add(allCheckbox, gbc);
 
@@ -372,7 +378,7 @@ public class AirportManagementFrame extends JFrame {
                     (orderByCompanyId.isSelected() ? 1 : 0);
 
             // Enable/disable read button based on selection criteria
-            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount <= 1);
+            readButton.setEnabled(selectedInfoCount >= 2 && selectedOrderByCount == 1);
 
             // Enable order by checkboxes only if corresponding info checkbox is selected
             orderByAirportId.setEnabled(airportIdCheckbox.isSelected());
@@ -385,6 +391,9 @@ public class AirportManagementFrame extends JFrame {
             if (!airportNameCheckbox.isSelected()) orderByAirportName.setSelected(false);
             if (!countryNameCheckbox.isSelected()) orderByCountryName.setSelected(false);
             if (!companyIdCheckbox.isSelected()) orderByCompanyId.setSelected(false);
+
+            // Enable descending order checkbox if any order-by checkbox is selected
+            descendingOrderCheckbox.setEnabled(selectedOrderByCount > 0);
 
             // Update "All" checkbox status based on the other checkboxes
             allCheckbox.setSelected(airportIdCheckbox.isSelected() &&
@@ -441,6 +450,9 @@ public class AirportManagementFrame extends JFrame {
             else if (orderByCountryName.isSelected()) query.append(" ORDER BY country_name");
             else if (orderByCompanyId.isSelected()) query.append(" ORDER BY company_id");
 
+            // Add descending order if checkbox is selected
+            if (descendingOrderCheckbox.isSelected()) query.append(" DESC");
+
             try {
                 // Pass query to manageRecord for execution
                 List<Object[]> results = manageRecord.readWithQuery(query.toString());
@@ -468,13 +480,13 @@ public class AirportManagementFrame extends JFrame {
         // Cancel Button Logic
         cancelButton.addActionListener(e -> dialog.dispose());
 
-        // Add buttons to the button panel
+        // Add buttons to panel and dialog
         buttonPanel.add(readButton);
         buttonPanel.add(cancelButton);
-
-        // Add the panels to the dialog
         dialog.add(selectionPanel, BorderLayout.CENTER);
         dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Make the dialog visible
         dialog.setVisible(true);
     }
 
@@ -485,7 +497,7 @@ public class AirportManagementFrame extends JFrame {
         dialog.setLocationRelativeTo(this);
 
         JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(5, 2, 10, 10));
+        inputPanel.setLayout(new GridLayout(7, 2, 10, 10)); // Increased rows for the new toggles
         inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Labels and text fields
@@ -495,8 +507,14 @@ public class AirportManagementFrame extends JFrame {
         JLabel airportNameLabel = new JLabel("Airport Name (Single or Comma-separated, e.g., JFK, LAX):");
         JTextField airportNameField = new JTextField();
 
+        // Toggle for LIKE query for Airport Name
+        JCheckBox airportNameLikeToggle = new JCheckBox("Use LIKE for Airport Name (Supports Wildcards, e.g., %JFK%)");
+
         JLabel countryNameLabel = new JLabel("Country Name (Single or Comma-separated, e.g., UAE, United Kingdom):");
         JTextField countryNameField = new JTextField();
+
+        // Toggle for LIKE query for Country Name
+        JCheckBox countryNameLikeToggle = new JCheckBox("Use LIKE for Country Name (Supports Wildcards, e.g., %Kingdom%)");
 
         JLabel companyIdLabel = new JLabel("Company ID (Single or Range, e.g., 5 or 5-15):");
         JTextField companyIdField = new JTextField();
@@ -505,8 +523,12 @@ public class AirportManagementFrame extends JFrame {
         inputPanel.add(airportIdField);
         inputPanel.add(airportNameLabel);
         inputPanel.add(airportNameField);
+        inputPanel.add(new JLabel()); // Empty label for spacing
+        inputPanel.add(airportNameLikeToggle);
         inputPanel.add(countryNameLabel);
         inputPanel.add(countryNameField);
+        inputPanel.add(new JLabel()); // Empty label for spacing
+        inputPanel.add(countryNameLikeToggle);
         inputPanel.add(companyIdLabel);
         inputPanel.add(companyIdField);
 
@@ -535,23 +557,31 @@ public class AirportManagementFrame extends JFrame {
                     }
                 }
 
-                // Parse Airport Name
+                // Parse Airport Name with optional LIKE query
                 if (!airportNameField.getText().trim().isEmpty()) {
                     String[] airportNames = airportNameField.getText().trim().split(",");
                     whereClause.append("(");
                     for (String name : airportNames) {
-                        whereClause.append("name = '").append(name.trim()).append("' OR ");
+                        if (airportNameLikeToggle.isSelected()) {
+                            whereClause.append("name LIKE '").append(name.trim()).append("' OR ");
+                        } else {
+                            whereClause.append("name = '").append(name.trim()).append("' OR ");
+                        }
                     }
                     whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
                     whereClause.append(") AND ");
                 }
 
-                // Parse Country Name
+                // Parse Country Name with optional LIKE query
                 if (!countryNameField.getText().trim().isEmpty()) {
                     String[] countryNames = countryNameField.getText().trim().split(",");
                     whereClause.append("(");
                     for (String country : countryNames) {
-                        whereClause.append("country_name = '").append(country.trim()).append("' OR ");
+                        if (countryNameLikeToggle.isSelected()) {
+                            whereClause.append("country_name LIKE '").append(country.trim()).append("' OR ");
+                        } else {
+                            whereClause.append("country_name = '").append(country.trim()).append("' OR ");
+                        }
                     }
                     whereClause.setLength(whereClause.length() - 4); // Remove the last " OR "
                     whereClause.append(") AND ");
@@ -588,16 +618,21 @@ public class AirportManagementFrame extends JFrame {
                     results = manageRecord.readWithQuery("SELECT * FROM airports WHERE " + query);
                 }
 
-                // Prepare data for JTable
-                Object[][] data = new Object[results.size()][columnNames.size()];
-                for (int i = 0; i < results.size(); i++) {
-                    data[i] = results.get(i);
-                }
+                // Handle case with no matching records
+                if (results.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "No records found matching the query conditions.", "No Records Found", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Prepare data for JTable
+                    Object[][] data = new Object[results.size()][columnNames.size()];
+                    for (int i = 0; i < results.size(); i++) {
+                        data[i] = results.get(i);
+                    }
 
-                // Create JTable for displaying results
-                JTable resultTable = new JTable(data, columnNames.toArray());
-                JScrollPane scrollPane = new JScrollPane(resultTable);
-                JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+                    // Create JTable for displaying results
+                    JTable resultTable = new JTable(data, columnNames.toArray());
+                    JScrollPane scrollPane = new JScrollPane(resultTable);
+                    JOptionPane.showMessageDialog(dialog, scrollPane, "Query Results", JOptionPane.INFORMATION_MESSAGE);
+                }
             } catch (SQLException ex) {
                 JOptionPane.showMessageDialog(dialog, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
