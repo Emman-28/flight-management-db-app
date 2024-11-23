@@ -57,7 +57,7 @@ public class FlightManagementFrame extends JFrame {
 
         JLabel instructionLabel = new JLabel("Select a Flight Operation:");
         instructionLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        instructionLabel.setForeground(Color.WHITE);
+        instructionLabel.setForeground(Color.BLACK);
         instructionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         instructionPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         instructionPanel.add(instructionLabel);
