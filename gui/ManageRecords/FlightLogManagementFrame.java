@@ -18,9 +18,11 @@ public class FlightLogManagementFrame extends JFrame {
 
     public FlightLogManagementFrame(Connection connection, ManageRecord manageRecord, ExecuteTransaction transaction, GenerateReport report) {
         setTitle("Flight Management");
-        setSize(800, 500);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLocationRelativeTo(null); // Center the window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        setUndecorated(false); // Set to true if you want no window borders
         setIconImage(new ImageIcon("logo.png").getImage());
 
         this.flightManager = new FlightManager(connection);
