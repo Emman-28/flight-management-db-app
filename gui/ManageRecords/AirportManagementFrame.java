@@ -72,7 +72,7 @@ public class AirportManagementFrame extends JFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space
 
-        JLabel selectionMessage = new JLabel("Select an action for the airport records:", SwingConstants.CENTER);
+        JLabel selectionMessage = new JLabel("Select an action", SwingConstants.CENTER);
         selectionMessage.setFont(new Font("Arial", Font.PLAIN, 14));
         selectionMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(selectionMessage);

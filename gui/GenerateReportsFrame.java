@@ -3,13 +3,13 @@ package gui;
 import gui.GenerateReports.CompanyRevenueFrame;
 import gui.GenerateReports.FlightPerformanceFrame;
 import gui.GenerateReports.PassengerTrafficFrame;
-import operations.*;
-import java.sql.*;
-import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.sql.*;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import operations.*;
 
 public class GenerateReportsFrame {
     public GenerateReportsFrame(Connection connection, ManageRecord record, ExecuteTransaction transaction, GenerateReport report) {
@@ -60,7 +60,7 @@ public class GenerateReportsFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
-        JLabel welcomeLabel = new JLabel("Which report would you like to generate?", SwingConstants.CENTER);
+        JLabel welcomeLabel = new JLabel("Select a report to generate", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.PLAIN,14));
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(welcomeLabel);

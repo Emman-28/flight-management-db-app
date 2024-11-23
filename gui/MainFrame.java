@@ -64,9 +64,9 @@ public class MainFrame {
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Add space between elements
 
         // Options section (Buttons)
-        JButton manageRecordsButton = new JButton("Manage Records");
-        JButton executeTransactionsButton = new JButton("Execute Transactions");
-        JButton generateReportsButton = new JButton("Generate Reports");
+        JButton manageRecordsButton = new JButton("Record Management");
+        JButton executeTransactionsButton = new JButton("Transaction Execution");
+        JButton generateReportsButton = new JButton("Report Generation");
         JButton exitSystemButton = new JButton("Exit");
 
         Dimension buttonSize = new Dimension(250, 40);

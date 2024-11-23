@@ -71,7 +71,7 @@ public class AircraftManagementFrame extends JFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        JLabel selectionMessage = new JLabel("Select an action for the aircraft records:", SwingConstants.CENTER);
+        JLabel selectionMessage = new JLabel("Select an action", SwingConstants.CENTER);
         selectionMessage.setFont(new Font("Arial", Font.PLAIN, 14));
         selectionMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(selectionMessage);
