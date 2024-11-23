@@ -17,6 +17,16 @@ public class PassengerTrafficFrame extends JFrame {
     private final GenerateReport report;
     private final Connection connection;
 
+    private JLabel passengersLabel;
+    private JLabel flightsLabel;
+    private JLabel delayedFlightsLabel;
+    private JLabel cancelledFlightsLabel;
+    private JLabel successfulFlightsLabel;
+    private JLabel totalPaymentsLabel;
+
+    private JPanel reportDataPanel;
+
+
     // GUI Components
     private JLabel parameterLabel;
     private JComboBox<AirportEntry> parameterComboBox; // Changed to hold AirportEntry objects
@@ -168,16 +178,47 @@ public class PassengerTrafficFrame extends JFrame {
         gbc.gridy = 2;
         mainPanel.add(buttonPanel, gbc);
 
-        // Output table
-        JTable resultTable = new JTable();
-        resultTable.setFont(new Font("Arial", Font.PLAIN, 14));
-        resultTable.setRowHeight(20);
-        JScrollPane scrollPane = new JScrollPane(resultTable);
-        scrollPane.setPreferredSize(new Dimension(750, 300));
-        scrollPane.setVisible(false); // Hidden initially
+        // Initialize the report data panel
+        reportDataPanel = new JPanel(new GridBagLayout());
+        reportDataPanel.setOpaque(false); // Make panel transparent
+        reportDataPanel.setVisible(false); // Initially hidden
 
+        // Initialize labels
+        passengersLabel = createDataLabel("Passengers: ");
+        flightsLabel = createDataLabel("Flights: ");
+        delayedFlightsLabel = createDataLabel("Delayed Flights: ");
+        cancelledFlightsLabel = createDataLabel("Cancelled Flights: ");
+        successfulFlightsLabel = createDataLabel("Successful Flights: ");
+        totalPaymentsLabel = createDataLabel("Total Payments: ");
+
+        // Add labels to reportDataPanel
+        GridBagConstraints gbcData = new GridBagConstraints();
+        gbcData.insets = new Insets(5, 5, 5, 5);
+        gbcData.anchor = GridBagConstraints.WEST;
+
+        gbcData.gridx = 0;
+        gbcData.gridy = 0;
+        reportDataPanel.add(passengersLabel, gbcData);
+
+        gbcData.gridy++;
+        reportDataPanel.add(flightsLabel, gbcData);
+
+        gbcData.gridy++;
+        reportDataPanel.add(delayedFlightsLabel, gbcData);
+
+        gbcData.gridy++;
+        reportDataPanel.add(cancelledFlightsLabel, gbcData);
+
+        gbcData.gridy++;
+        reportDataPanel.add(successfulFlightsLabel, gbcData);
+
+        gbcData.gridy++;
+        reportDataPanel.add(totalPaymentsLabel, gbcData);
+
+        // Add the reportDataPanel to the mainPanel
         gbc.gridy = 3;
-        mainPanel.add(scrollPane, gbc);
+        mainPanel.add(reportDataPanel, gbc);
+
         add(mainPanel);
 
         // Initialize data lists
@@ -194,64 +235,89 @@ public class PassengerTrafficFrame extends JFrame {
 
         // Action listener for generate button
         generateButton.addActionListener(e -> {
-            String reportType = (String) reportTypeComboBox.getSelectedItem();
-            Object selectedObject = parameterComboBox.getSelectedItem();
-            String startDate = startDateField.getText().trim();
-            String endDate = endDateField.getText().trim();
-
-            // Validation
-            if (selectedObject == null || startDate.isEmpty() || endDate.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            if (!isValidDate(startDate) || !isValidDate(endDate)) {
-                JOptionPane.showMessageDialog(this, "Please enter dates in YYYY-MM-DD format.", "Date Format Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Ensure startDate is before or equal to endDate
-            if (startDate.compareTo(endDate) > 0) {
-                JOptionPane.showMessageDialog(this, "Start Date cannot be after End Date.", "Date Range Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Retrieve the selected AirportEntry object
-            if (!(selectedObject instanceof AirportEntry)) {
-                JOptionPane.showMessageDialog(this, "Invalid airport selection.", "Selection Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            AirportEntry selectedAirport = (AirportEntry) selectedObject;
-            int airportId = selectedAirport.getId();
-
             try {
+                System.out.println("Generate Report button clicked");
+        
+                String reportType = (String) reportTypeComboBox.getSelectedItem();
+                System.out.println("Selected report type: " + reportType);
+        
+                Object selectedObject = parameterComboBox.getSelectedItem();
+                System.out.println("Selected parameter: " + selectedObject);
+        
+                String startDate = startDateField.getText().trim();
+                String endDate = endDateField.getText().trim();
+                System.out.println("Start date: " + startDate);
+                System.out.println("End date: " + endDate);
+        
+                // Validation
+                if (selectedObject == null || startDate.isEmpty() || endDate.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (!isValidDate(startDate) || !isValidDate(endDate)) {
+                    JOptionPane.showMessageDialog(this, "Please enter dates in YYYY-MM-DD format.", "Date Format Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+        
+                // Ensure startDate is before or equal to endDate
+                if (startDate.compareTo(endDate) > 0) {
+                    JOptionPane.showMessageDialog(this, "Start Date cannot be after End Date.", "Date Range Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+        
+                // Retrieve the selected AirportEntry object
+                if (!(selectedObject instanceof AirportEntry)) {
+                    JOptionPane.showMessageDialog(this, "Invalid airport selection.", "Selection Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                AirportEntry selectedAirport = (AirportEntry) selectedObject;
+                int airportId = selectedAirport.getId();
+        
                 Object[][] reportData = null;
                 switch (reportType) {
                     case "By Origin Airport":
+                        System.out.println("Calling passengerAirportTraffic with airportId=" + airportId + ", startDate=" + startDate + ", endDate=" + endDate);
                         reportData = report.passengerAirportTraffic(airportId, startDate, endDate);
                         break;
                     case "By Destination Airport":
+                        System.out.println("Calling passengerDestinationTraffic with airportId=" + airportId + ", startDate=" + startDate + ", endDate=" + endDate);
                         reportData = report.passengerDestinationTraffic(airportId, startDate, endDate);
                         break;
                     default:
                         JOptionPane.showMessageDialog(this, "Invalid report type selected.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                 }
-
+        
+                System.out.println("Report data retrieved: " + java.util.Arrays.deepToString(reportData));
+        
                 if (reportData == null || reportData.length == 0) {
                     JOptionPane.showMessageDialog(this, "No data available for the selected criteria.", "No Data", JOptionPane.INFORMATION_MESSAGE);
-                    scrollPane.setVisible(false);
+                    reportDataPanel.setVisible(false);
                     return;
                 }
-
-                String[] columnNames = {"Passengers", "Flights", "Delayed Flights", "Cancelled Flights", "Successful Flights", "Total Payments"};
-                resultTable.setModel(new javax.swing.table.DefaultTableModel(reportData, columnNames));
-                scrollPane.setVisible(true);
-
-            } catch (SQLException ex) {
+        
+                // Since reportData is an array with one row, we can access the first row directly
+                Object[] rowData = reportData[0];
+        
+                // Set the text of each label with the corresponding data
+                passengersLabel.setText("Passengers: " + rowData[0]);
+                flightsLabel.setText("Flights: " + rowData[1]);
+                delayedFlightsLabel.setText("Delayed Flights: " + rowData[2]);
+                cancelledFlightsLabel.setText("Cancelled Flights: " + rowData[3]);
+                successfulFlightsLabel.setText("Successful Flights: " + rowData[4]);
+                totalPaymentsLabel.setText("Total Payments: $" + rowData[5]);
+        
+                // Make the reportDataPanel visible
+                reportDataPanel.setVisible(true);
+                mainPanel.revalidate();
+                mainPanel.repaint();
+        
+            } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Error generating report: " + ex.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+        
 
         // Action listener for back button
         backButton.addActionListener(e -> {
@@ -279,7 +345,7 @@ public class PassengerTrafficFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Error fetching airports: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+    
     private void updateParameterComboBox(String reportType) {
         parameterComboBox.removeAllItems();
         if (reportType.equals("By Origin Airport") || reportType.equals("By Destination Airport")) {
@@ -294,5 +360,11 @@ public class PassengerTrafficFrame extends JFrame {
 
     private boolean isValidDate(String date) {
         return date.matches("\\d{4}-\\d{2}-\\d{2}");
+    }
+
+    private JLabel createDataLabel(String labelText) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Arial", Font.PLAIN, 16));
+        return label;
     }
 }
