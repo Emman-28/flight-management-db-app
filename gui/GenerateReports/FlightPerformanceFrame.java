@@ -2,8 +2,10 @@ package gui.GenerateReports;
 
 import gui.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import operations.*;
@@ -22,13 +24,34 @@ public class FlightPerformanceFrame extends JFrame {
 
         // Frame settings
         setTitle("Flight Performance Report Generator");
-        setSize(600, 600);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(500, 400);
+        setLocationRelativeTo(null); // Center the window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximize to full screen
+        setUndecorated(false); // Set to true if you want no window borders
         setIconImage(new ImageIcon("logo.png").getImage());
+        
+        // Setting background
+        JPanel mainPanel = new JPanel(new GridBagLayout()) {
+            private Image backgroundImage;
+        
+            {
+                try {
+                    backgroundImage = ImageIO.read(new File("db bg.png"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
 
         // Main panel with GridBagLayout
-        JPanel mainPanel = new JPanel(new GridBagLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
