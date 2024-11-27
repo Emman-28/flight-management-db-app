@@ -122,7 +122,7 @@ public class ExecuteTransactionsFrame {
 
         updateFlightButton.addActionListener(e -> {
             frame.dispose();
-            new UpdateFlightFrame(connection, manageRecord, transaction, report); // Redirect to UpdateFlightFrame
+            new UpdateFlightStatusFrame(connection, manageRecord, transaction, report); // Redirect to UpdateFlightFrame
         });
 
         backButton.addActionListener(e -> {

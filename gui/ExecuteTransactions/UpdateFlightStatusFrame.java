@@ -26,8 +26,9 @@ public class UpdateFlightStatusFrame extends JFrame {
         this.report = report;
 
         setTitle("Update Flight Status");
-        setSize(600, 400);
-        setLocationRelativeTo(null);
+        setSize(500, 500);
+        setLocationRelativeTo(null); // centers window
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // maximizes window
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setIconImage(new ImageIcon("logo.png").getImage());
 
